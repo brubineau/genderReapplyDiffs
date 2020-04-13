@@ -37,6 +37,8 @@ rm(list=ls())
 gc()
 
 #    1.2. Load needed libraries
+#         Note: if the "deSolve" package is not already installed, de-comment and run (once only) the following line:
+#         install.packages("deSolve")
 library(deSolve)
 
 #    1.3. Change to working directory
