@@ -576,7 +576,7 @@ rRange <- ((1:33)*3-1)/100     # 0.02..0.98 by steps of 0.03
 tRange <- 1:200              # focus is t=20
 
 # Plotting as a function of t - time
-png(width=10,height=7,units="in",res=300,filename=paste0("Fig2",gsub("-","",Sys.Date()),".PNG"))
+png(width=10,height=7,units="in",res=300,filename=paste0("Fig2_",gsub("-","",Sys.Date()),".PNG"))
 par(mar=c(4,5,1,1)+0.1,mfrow=c(2,2))
 plot(x=tRange,y=rep(0,length(tRange)),ylim=c(0.0,0.32),col="white",
      ylab="Female Share (of Selected or Applicants)",
@@ -694,7 +694,7 @@ fig3_80b <- sapply(1+((0:100)/100),function(ex){getThreshP(cases$r[1],0.8*cases$
 fig3_60b <- sapply(1+((0:100)/100),function(ex){getThreshP(cases$r[1],0.6*cases$b[1],cases$g[1],steadyState,ex)})
 
 
-png(width=1500,height=2400,filename=paste0("Fig3_gbr_",gsub("-","",Sys.Date()),".PNG"),res=300)
+png(width=1500,height=2400,filename=paste0("Fig3_",gsub("-","",Sys.Date()),".PNG"),res=300)
 par(mar=c(3,3,1,0)+0.1,mfrow=c(3,1))
 # g first
 # PLOTTING CHANGES in g - gender difference in reapplication
