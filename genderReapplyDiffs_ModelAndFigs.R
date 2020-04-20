@@ -721,29 +721,6 @@ text(x=1,y=0.1615,labels="Rising threshold as pool expands",cex=0.7,adj=0)
 text(x=1.8,y=0.139,labels="Steady state, 13.8%",cex=0.7,adj=0)
 text(x=1.4,y=0.159,labels="Threshold, p=16% for steady state=13.8%, at original pool size",cex=0.7,adj=0)
 
-# PLOTTING CHANGES in b - baseline reapplication rate
-# png(width=1200,height=640,filename=paste0("xParam_b",gsub("-","",Sys.Date()),".PNG"))
-# par(mar=c(5,6,4,2)+0.1)
-plot(x=1+((0:100)/100),
-     y=fig3,
-     ylim=c(0.138,0.162),type="l",
-     ylab="Threshold %F", xlab="expanded pool relative size, x",cex.axis=0.7,cex.lab=0.7,yaxt="n",lwd=1.5)
-mtext("expanded pool relative size, x",side=1,line=2,cex=0.7)
-mtext("Threshold %Female",side=2,line=2,cex=0.7)
-yLabels <- seq(0.138, 0.162, 0.002)
-axis(2, at=yLabels, labels=sprintf(round(100*yLabels,1), fmt="%2.1f%%"), cex.axis=0.7,cex.lab=0.7)
-lines(x=c(1,2),y=rep(0.138,2),lty=3,col="darkGray")
-lines(x=c(1,2),y=rep(0.16,2),lty=3,col="darkGray")
-lines(x=1+((0:100)/100),
-      y=fig3_80b,lwd=1.5,lty=5,col="black")
-lines(x=1+((0:100)/100),
-      y=fig3_60b,lwd=1.5,lty=2,col="black")
-text(x=1.05,y=0.1525,labels=paste0("80% of original base reapplication rate, b=",round(0.8*cases$b[1],2)),cex=0.7,adj=0)
-text(x=1.4,y=0.144,labels=paste0("60% of original base reapplication rate, b=",round(0.6*cases$b[1],2)),cex=0.7,adj=0)
-text(x=1,y=0.1615,labels="Rising threshold as pool expands",cex=0.7,adj=0)
-text(x=1.8,y=0.139,labels="Steady state, 13.8%",cex=0.7,adj=0)
-text(x=1.4,y=0.159,labels="Threshold, p=16% for steady state=13.8%, at original pool size",cex=0.7,adj=0)
-
 # PLOTTING CHANGES in r - baseline rejection rate
 plot(x=1+((0:100)/100),
      y=fig3,
@@ -763,6 +740,27 @@ lines(x=1+((0:100)/100),
       y=fig3_60r,lwd=1.5,lty=2,col="black")
 text(x=1.05,y=0.154,labels=paste0("80% of original rejection rate, r=",round(0.8*cases$r[1],2)),cex=0.7,adj=0)
 text(x=1.5,y=0.1475,labels=paste0("60% of original rejection rate, r=",round(0.6*cases$r[1],2)),cex=0.7,adj=0)
+text(x=1,y=0.1615,labels="Rising threshold as pool expands",cex=0.7,adj=0)
+text(x=1.8,y=0.139,labels="Steady state, 13.8%",cex=0.7,adj=0)
+text(x=1.4,y=0.159,labels="Threshold, p=16% for steady state=13.8%, at original pool size",cex=0.7,adj=0)
+
+# PLOTTING CHANGES in b - baseline reapplication rate
+plot(x=1+((0:100)/100),
+     y=fig3,
+     ylim=c(0.138,0.162),type="l",
+     ylab="Threshold %F", xlab="expanded pool relative size, x",cex.axis=0.7,cex.lab=0.7,yaxt="n",lwd=1.5)
+mtext("expanded pool relative size, x",side=1,line=2,cex=0.7)
+mtext("Threshold %Female",side=2,line=2,cex=0.7)
+yLabels <- seq(0.138, 0.162, 0.002)
+axis(2, at=yLabels, labels=sprintf(round(100*yLabels,1), fmt="%2.1f%%"), cex.axis=0.7,cex.lab=0.7)
+lines(x=c(1,2),y=rep(0.138,2),lty=3,col="darkGray")
+lines(x=c(1,2),y=rep(0.16,2),lty=3,col="darkGray")
+lines(x=1+((0:100)/100),
+      y=fig3_80b,lwd=1.5,lty=5,col="black")
+lines(x=1+((0:100)/100),
+      y=fig3_60b,lwd=1.5,lty=2,col="black")
+text(x=1.05,y=0.1525,labels=paste0("80% of original base reapplication rate, b=",round(0.8*cases$b[1],2)),cex=0.7,adj=0)
+text(x=1.4,y=0.144,labels=paste0("60% of original base reapplication rate, b=",round(0.6*cases$b[1],2)),cex=0.7,adj=0)
 text(x=1,y=0.1615,labels="Rising threshold as pool expands",cex=0.7,adj=0)
 text(x=1.8,y=0.139,labels="Steady state, 13.8%",cex=0.7,adj=0)
 text(x=1.4,y=0.159,labels="Threshold, p=16% for steady state=13.8%, at original pool size",cex=0.7,adj=0)
