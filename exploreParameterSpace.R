@@ -117,10 +117,19 @@ appEquil2 <- function(digits,gParam,bParam,pParam,rParam){
 
 # analytic solution?
 # share of return applicants
+fShare <- function(t,p,r,b,g){
+  k <- r*b/(1+(b*g)-b)
+  return((exp((t+log(k*p))*(k-1))-p)/(k-1))
+}
+mShare <- function(t,p,r,b,g){
+  k <- r*b/(1+(b*g)-b)
+  return((exp((t+(log(g*k-g*p*k)/(g*k-1)))*(g*k-1))-(1-p))/(g*k-1))
+}
+
 equilPctF <- function(p,r,b,g){
-  fShare <- (exp(100*((r*b/(1+(b*g)-b))-1))-p)/((r*b/(1+(b*g)-b))-1)
-  mShare <- (exp(100*((r*b*g/(1+(b*g)-b))-1))-(1-p))/((r*b*g/(1+(b*g)-b))-1)
-  return(fShare/(fShare+mShare))
+#  fShare <- (exp(100*((r*b/(1+(b*g)-b))-1))-p)/((r*b/(1+(b*g)-b))-1)
+#  mShare <- (exp(100*((r*b*g/(1+(b*g)-b))-1))-(1-p))/((r*b*g/(1+(b*g)-b))-1)
+  return(fShare(1000,p,r,b,g)/(fShare(1000,p,r,b,g)+mShare(1000,p,r,b,g)))
 }
 # > equilPctF(0.3,0.8,0.7,1.2)
 # [1] 0.2569546
@@ -244,10 +253,10 @@ getS <- function(pParam,rParam,target){
 # # # Axis dimenations:
 # # # b - overall reapplication rate: 0..1
 # # # g - gender difference in reapplication 1..2
-pRange <- (10+20*(0:4))/100
+pRange <- (10+10*(0:4))/100
 rRange <- (10+20*(0:4))/100
 gRange <- seq(1,2,0.01)
-bRange <- seq(0.1,1,0.01)
+bRange <- seq(0.01,0.99,0.01)
 
 z <- expand.grid(list(pRange,rRange))
 z$vName <- unlist(sapply(1:(dim(z)[1]),function(r){paste0('z.p',z$Var1[r]*100,'r',z$Var2[r]*100)}))
@@ -365,30 +374,41 @@ cf_4dim(function(x){equilPctF(x[1],x[2],x[3],x[4])},
         over=c(2,1),nover1=5,nover2=5,
         low=c(0.1,0.1,0.01,1),
         high=c(0.9,0.9,0.99,2),
-        nlevels=49,same_scale=T,
+        nlevels=32,same_scale=T,
         var_names = c("p","r","b","g"),
-        color.palette = gray.colors,
+#        color.palette = gray.colors,
+        color.palette = rainbow,
+        # same_scale=T,
         # bar_width=1, 
         with_lines=T,
+        axes=T,
 #        axes=list(axis(1,at=seq(1,2,0.2)),axis(2,at=seq(0,1,0.2))),
         n=5)
+axis(1)
 dev.off()
 
 png(filename=paste0("cf_4dimOR_",gsub("-","",Sys.Date()),".PNG"),width=1200,height=1200)
 par(mar=c(2,2,0,0))
-cf_4dim(function(x){getS(x[1],x[2],target=equilPctF(x[1],x[2],x[3],x[4]))[3]},
+cf_4dim(function(x){getS(x[1],x[2],target=equilPctF(x[1],x[2],x[3],x[4]))[4]},
         over=c(2,1),nover1=5,nover2=5,
         low=c(0.1,0.1,0.01,1),
         high=c(0.9,0.9,0.99,2),
-        nlevels=49,
+        nlevels=32,
         var_names = c("p","r","b","g"),
-        color.palette = gray.colors,
+        color.palette = rainbow,
         bar_width=1, with_lines=T,
+        axes={ axis(1, seq(1, 2, by = 0.2))
+          axis(2, seq(0, 1, by = 0.2)) },
         n=5)
-
 dev.off()
 
-`plots25.lst <- lapply(as.list(pRange),function(p){
+for (x in seq(-0.5,2,0.5)) {
+  for (y in seq(-0.5,2,0.5)){
+    text(x=x,y=y,labels=paste0("x:",x,", y:",y))
+  }
+}
+
+plots25.lst <- lapply(as.list(pRange),function(p){
   lapply(as.list(rRange),function(r){
     plotContour(p,r)
   })
@@ -454,8 +474,117 @@ plot_ly(x=gRange,y=bRange,z=as.matrix(zmat25[,-1])) %>% add_surface()
 plot_ly(x=gRange,y=bRange,z=as.matrix(zmat50[,-1])) %>% add_surface()
 plot_ly(x=gRange,y=bRange,z=as.matrix(zmat75[,-1])) %>% add_surface()
 
+x = rep(gRange, each=length(bRange))
+y = rep(bRange, length(gRange))
+z.df <- expand.grid(gRange,bRange)
+z.df$z <- equilPctF(0.3,0.8,b=z.df$Var2,g=z.df$Var1)
+data3d <- xyz.coords(z.df)
+filled.contour2(x=gRange,
+               y=bRange,
+               z=matrix(data3d$z,nrow=length(gRange),ncol=length(bRange)),
+               zlim=c(0,1),
+               levels=seq(0,1,0.01),
+               color.palette = rainbow
+               )
+contour(x=gRange,
+               y=bRange,
+               z=matrix(data3d$z,nrow=length(gRange),ncol=length(bRange)),
+               zlim=c(0,1),
+               levels=seq(0,1,0.01),
+        add=T)
 
+plot_ly(x=gRange,y=bRange,z=matrix(data3d$z,nrow=length(gRange),ncol=length(bRange)),
+        type="contour",
+        colorscale='rainbow',
+        autocontour=F,
+        contours=list(start=0.01,end=0.99,size=0.01,showlabels=T),
+        line=list(smoothing=0)
+        )
 
+getPctFPanel <- function(p,r){
+  fig <- plot_ly(
+    x=gRange,
+    y=bRange,
+    z=matrix(equilPctF(p,
+                       r,
+                       b=data3d$y,
+                       g=data3d$x),nrow=length(gRange),
+             ncol=length(bRange)),
+    type="contour",
+    colorscale=cbind(seq(0, 1, by=0.01), rainbow(101)),
+    autocontour=F,
+    contours=list(start=0.01,end=0.99,size=0.01,showlabels=T),
+    line=list(smoothing=0),
+    showscale=F
+  )
+  fig <- fig %>% layout(
+    xaxis=list(title="g"),
+    yaxis=list(title="b")
+  )
+  return(fig)
+}
+
+getORPanel <- function(p,r){
+  fig <- plot_ly(
+    x=gRange,y=bRange,
+    z=matrix(apply(as.data.frame(data3d[1:2]),
+                   MAR=1,
+                   FUN=function(paramRow){
+                     getS(p=p,
+                          r=r,
+                          target=equilPctF(p=p,
+                                           r=r,
+                                           b=paramRow[2],
+                                           g=paramRow[1]))[4]
+      }),nrow=length(gRange),ncol=length(bRange)),
+    type="contour",
+    colorscale=cbind(seq(0, 1, by=0.01), rainbow(101)),
+    autocontour=F,
+    contours=list(start=1,end=10,size=0.1,showlabels=T),
+    line=list(smoothing=0),
+    showscale=F
+  )
+  fig <- fig %>% layout(
+    xaxis=list(title="g"),
+    yaxis=list(title="b")
+  )
+  return(fig)
+}
+
+paramsPR <- expand.grid(pRange,rRange)
+panelsPctF <- lapply(
+  lapply(1:(dim(paramsPR)[1]),
+         function(ps){
+           c(paramsPR[ps,1],paramsPR[ps,2])
+           }),
+  function(pr){
+    getPctFPanel(pr[1],pr[2])
+    })
+panelsOR <- lapply(
+  lapply(1:(dim(paramsPR)[1]),
+         function(ps){
+           c(paramsPR[ps,1],paramsPR[ps,2])
+           }),
+  function(pr){
+    getORPanel(pr[1],pr[2])
+    })
+gridFigPctF <- subplot(panelsPctF[1:25],nrows=5)
+gridFigPctF
+gridFigOR <- subplot(panelsOR[1:25],nrows=5)
+gridFigOR
+
+panPctF3.7 <- getPctFPanel(0.3,0.7)
+panPctF3.7
+panOR3.7 <- getORPanel(0.3,0.7)
+panOR3.7
+
+pan37 <- getPanel(0.3,0.8)
+pan1.1 <- panels[[1]]
+pan3.7 <- panels[[17]]
+gridFig <- subplot(lapply(panels,function(p){p[1]}),plot_ly(),nrows=5)
+fig <- subplot(panels[1:25],nrows=5)
+fig <- fig %>% layout(coloraxis=list(colorscale='Rainbow'))
+fig
 # # Second pass
 # # # Non-continuous dimensions:
 # # # p - percent female among applicants
@@ -463,4 +592,149 @@ plot_ly(x=gRange,y=bRange,z=as.matrix(zmat75[,-1])) %>% add_surface()
 # # # Axis dimenations:
 # # # b - overall reapplication rate: 0..1
 # # # g - gender difference in reapplication 1..2
+
+filled.contour3 <-
+  function (x = seq(0, 1, length.out = nrow(z)),
+            y = seq(0, 1, length.out = ncol(z)), z, xlim = range(x, finite = TRUE), 
+            ylim = range(y, finite = TRUE), zlim = range(z, finite = TRUE), 
+            levels = pretty(zlim, nlevels), nlevels = 20, color.palette = cm.colors, 
+            col = color.palette(length(levels) - 1), plot.title, plot.axes, 
+            key.title, key.axes, asp = NA, xaxs = "i", yaxs = "i", las = 1, 
+            axes = TRUE, frame.plot = axes,mar, ...) 
+  {
+    # modification by Ian Taylor of the filled.contour function
+    # to remove the key and facilitate overplotting with contour()
+    # further modified by Carey McGilliard and Bridget Ferris
+    # to allow multiple plots on one page
+    
+    if (missing(z)) {
+      if (!missing(x)) {
+        if (is.list(x)) {
+          z <- x$z
+          y <- x$y
+          x <- x$x
+        }
+        else {
+          z <- x
+          x <- seq.int(0, 1, length.out = nrow(z))
+        }
+      }
+      else stop("no 'z' matrix specified")
+    }
+    else if (is.list(x)) {
+      y <- x$y
+      x <- x$x
+    }
+    if (any(diff(x) <= 0) || any(diff(y) <= 0)) 
+      stop("increasing 'x' and 'y' values expected")
+    # mar.orig <- (par.orig <- par(c("mar", "las", "mfrow")))$mar
+    # on.exit(par(par.orig))
+    # w <- (3 + mar.orig[2]) * par("csi") * 2.54
+    # par(las = las)
+    # mar <- mar.orig
+    plot.new()
+    # par(mar=mar)
+    plot.window(xlim, ylim, "", xaxs = xaxs, yaxs = yaxs, asp = asp)
+    if (!is.matrix(z) || nrow(z) <= 1 || ncol(z) <= 1) 
+      stop("no proper 'z' matrix specified")
+    if (!is.double(z)) 
+      storage.mode(z) <- "double"
+    .Internal(filledcontour(as.double(x), as.double(y), z, as.double(levels), 
+                            col = col))
+    if (missing(plot.axes)) {
+      if (axes) {
+        title(main = "", xlab = "", ylab = "")
+        Axis(x, side = 1)
+        Axis(y, side = 2)
+      }
+    }
+    else plot.axes
+    if (frame.plot) 
+      box()
+    if (missing(plot.title)) 
+      title(...)
+    else plot.title
+    invisible()
+  }
+
+filled.legend <-
+  function (x = seq(0, 1, length.out = nrow(z)), y = seq(0, 1, 
+                                                         length.out = ncol(z)), z, xlim = range(x, finite = TRUE), 
+            ylim = range(y, finite = TRUE), zlim = range(z, finite = TRUE), 
+            levels = pretty(zlim, nlevels), nlevels = 20, color.palette = cm.colors, 
+            col = color.palette(length(levels) - 1), plot.title, plot.axes, 
+            key.title, key.axes, asp = NA, xaxs = "i", yaxs = "i", las = 1, 
+            axes = TRUE, frame.plot = axes, ...) 
+  {
+    # modification of filled.contour by Carey McGilliard and Bridget Ferris
+    # designed to just plot the legend
+    if (missing(z)) {
+      if (!missing(x)) {
+        if (is.list(x)) {
+          z <- x$z
+          y <- x$y
+          x <- x$x
+        }
+        else {
+          z <- x
+          x <- seq.int(0, 1, length.out = nrow(z))
+        }
+      }
+      else stop("no 'z' matrix specified")
+    }
+    else if (is.list(x)) {
+      y <- x$y
+      x <- x$x
+    }
+    if (any(diff(x) <= 0) || any(diff(y) <= 0)) 
+      stop("increasing 'x' and 'y' values expected")
+    #  mar.orig <- (par.orig <- par(c("mar", "las", "mfrow")))$mar
+    #  on.exit(par(par.orig))
+    #  w <- (3 + mar.orig[2L]) * par("csi") * 2.54
+    #layout(matrix(c(2, 1), ncol = 2L), widths = c(1, lcm(w)))
+    #  par(las = las)
+    #  mar <- mar.orig
+    #  mar[4L] <- mar[2L]
+    #  mar[2L] <- 1
+    #  par(mar = mar)
+    # plot.new()
+    plot.window(xlim = c(0, 1), ylim = range(levels), xaxs = "i", 
+                yaxs = "i")
+    rect(0, levels[-length(levels)], 1, levels[-1L], col = col)
+    if (missing(key.axes)) {
+      if (axes) 
+        axis(4)
+    }
+    else key.axes
+    box()
+  }
+#
+#    if (!missing(key.title)) 
+#        key.title
+#    mar <- mar.orig
+#    mar[4L] <- 1
+#    par(mar = mar)
+#    plot.new()
+#    plot.window(xlim, ylim, "", xaxs = xaxs, yaxs = yaxs, asp = asp)
+#    if (!is.matrix(z) || nrow(z) <= 1L || ncol(z) <= 1L) 
+#        stop("no proper 'z' matrix specified")
+#    if (!is.double(z)) 
+#        storage.mode(z) <- "double"
+#    .Internal(filledcontour(as.double(x), as.double(y), z, as.double(levels), 
+#        col = col))
+#    if (missing(plot.axes)) {
+#        if (axes) {
+#            title(main = "", xlab = "", ylab = "")
+#            Axis(x, side = 1)
+#            Axis(y, side = 2)
+#        }
+#    }
+#    else plot.axes
+#    if (frame.plot) 
+#        box()
+#    if (missing(plot.title)) 
+#        title(...)
+#    else plot.title
+#    invisible()
+#}
 
