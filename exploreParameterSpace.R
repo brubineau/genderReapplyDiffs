@@ -240,6 +240,15 @@ getS <- function(pParam,rParam,target){
            oddsR = round((accM/(1-accM))/(accW/(1-accW)),4)))
 }
 
+getSBE <- function(pParam,rParam,bParam,gParam){
+  q <- equilPctF(pParam,rParam,bParam,gParam)
+  r <- rParam
+  p <- pParam
+  return(c(oddsR = round(((r*q) - q + p)*(1-q) / (q *(q - (q*r) + r - p)),4),
+           accM=round((r-1)*(q-1)/(1-p),4),
+           accW=round((q-(q*r))/p,4)))
+}
+
 # Examine Paramater space
 # # First pass
 # # # Non-continuous dimensions:
@@ -530,12 +539,10 @@ getORPanel <- function(p,r){
     z=matrix(apply(as.data.frame(data3d[1:2]),
                    MAR=1,
                    FUN=function(paramRow){
-                     getS(p=p,
-                          r=r,
-                          target=equilPctF(p=p,
-                                           r=r,
-                                           b=paramRow[2],
-                                           g=paramRow[1]))[4]
+                     getSBE(pParam=p,
+                          rParam=r,
+                          bParam=paramRow[2],
+                          gParam=paramRow[1])[1]
       }),nrow=length(gRange),ncol=length(bRange)),
     type="contour",
     colorscale=cbind(seq(0, 1, by=0.01), rainbow(101)),
@@ -581,10 +588,12 @@ panOR3.7
 pan37 <- getPanel(0.3,0.8)
 pan1.1 <- panels[[1]]
 pan3.7 <- panels[[17]]
+
 gridFig <- subplot(lapply(panels,function(p){p[1]}),plot_ly(),nrows=5)
 fig <- subplot(panels[1:25],nrows=5)
 fig <- fig %>% layout(coloraxis=list(colorscale='Rainbow'))
 fig
+
 # # Second pass
 # # # Non-continuous dimensions:
 # # # p - percent female among applicants
