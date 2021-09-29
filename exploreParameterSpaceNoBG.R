@@ -204,7 +204,7 @@ getORPanelMW <- function(p,r){
     type="contour",
     colorscale=cbind(seq(0, 1, by=0.01), rainbow(101)),
     autocontour=F,
-    contours=list(start=1,end=10,size=0.1,showlabels=T),
+    contours=list(start=1,end=3,size=0.05,showlabels=T),
     line=list(smoothing=0),
     showscale=F
   )
@@ -232,13 +232,13 @@ getPctFPanelWO <- function(p,r){
     type="contour",
     colorscale=cbind(seq(0, 1, by=0.01), rainbow(101)),
     autocontour=F,
-    contours=list(start=0.01,end=0.99,size=0.01,showlabels=T),
+    contours=list(start=0,end=0.5,size=0.01,showlabels=T),
     line=list(smoothing=0),
     showscale=F
   )
   fig <- fig %>% layout(
-    xaxis=list(title="Odds Ratio of men's higher reapplication rate"),
-    yaxis=list(title="Women's reapplication rate")
+    xaxis=list(title="g: Odds Ratio of men's higher reapplication rate"),
+    yaxis=list(title="b: Women's reapplication rate")
   )
   return(fig)
 }
@@ -261,13 +261,13 @@ getORPanelWO <- function(p,r){
     type="contour",
     colorscale=cbind(seq(0, 1, by=0.01), rainbow(101)),
     autocontour=F,
-    contours=list(start=1,end=10,size=0.1,showlabels=T),
+    contours=list(start=1,end=3,size=0.1,showlabels=T),
     line=list(smoothing=0),
     showscale=F
   )
   fig <- fig %>% layout(
-    xaxis=list(title="Odds Ratio of men's higher reapplication rate"),
-    yaxis=list(title="Women's reappication rate")
+    xaxis=list(title="g: Odds Ratio of men's higher reapplication rate"),
+    yaxis=list(title="b: Women's reappication rate")
   )
   return(fig)
 }
@@ -366,3 +366,13 @@ getORcalcMW <- function(){
   return(fig)
 }
 getORcalcMW()
+
+# illustration
+# b = 0.5
+# g = 1, 1.1, 1.2,   1.3,   1.4
+# PctF:
+# 0.3, 0.295, 0.290, 0.285, 0.281
+# OR: 
+# 1,   1.038, 1.074, 1.109, 1.1425
+
+

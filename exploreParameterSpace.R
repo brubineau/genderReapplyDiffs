@@ -558,6 +558,36 @@ getORPanel <- function(p,r){
   return(fig)
 }
 
+getSubsPanel <- function(p,r,thresh=1.1,maxg=1.3){ # contour plot highlighting substantive effect threshold (1.1) and max value of g (1.3)
+  xRange <- seq(1,maxg,0.01)
+  z.df <- expand.grid(xRange,bRange)
+  z.df$z <- equilPctF(p=p,r=r,b=z.df$Var2,g=z.df$Var1)
+  coords3d <- xyz.coords(z.df)
+  fig <- plot_ly(
+    x=xRange,
+    y=bRange,
+    z=t(matrix(apply(as.data.frame(coords3d[1:2]),
+                   MAR=1,
+                   FUN=function(paramRow){
+                     getSBE(pParam=p,
+                            rParam=r,
+                            bParam=paramRow[2],
+                            gParam=paramRow[1])[1]
+                   }),nrow=length(xRange),ncol=length(bRange))),
+    type="contour",
+#    colorscale=cbind(seq(1,thresh, by=(thresh-1)), gray.colors(2)),
+    autocontour=F,
+    contours=list(start=1,end=thresh,size=(thresh-1),showlabels=T),
+    line=list(smoothing=0),
+    showscale=F
+  )
+    fig <- fig %>% layout(
+    xaxis=list(title="g",xlim=c(1,thresh)),
+    yaxis=list(title="b")
+  )
+  return(fig)
+}
+
 paramsPR <- expand.grid(pRange,rRange)
 panelsPctF <- lapply(
   lapply(1:(dim(paramsPR)[1]),
@@ -580,10 +610,24 @@ gridFigPctF
 gridFigOR <- subplot(panelsOR[1:25],nrows=5)
 gridFigOR
 
+panelsSubs <- lapply(
+  lapply(1:(dim(paramsPR)[1]),
+         function(ps){
+           c(paramsPR[ps,1],paramsPR[ps,2])
+         }),
+  function(pr){
+    getSubsPanel(pr[1],pr[2])
+  })
+gridFigSubs <- subplot(panelsSubs[1:25],nrows=5)
+gridFigSubs
+
 panPctF3.7 <- getPctFPanel(0.3,0.7)
 panPctF3.7
 panOR3.7 <- getORPanel(0.3,0.7)
 panOR3.7
+panSubs3.7 <- getSubsPanel(0.3,0.7)
+panSubs3.7
+
 
 pan37 <- getPanel(0.3,0.8)
 pan1.1 <- panels[[1]]
