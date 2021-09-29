@@ -1,0 +1,121 @@
+---
+title: "Reject and Resubmit Appendix"
+author: "Fernandez-Mateo, Rubineau, Kuppuswamy"
+date: "9/28/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Appendix
+
+## Contents
+1. Model Code
+   + Model
+   + Numeric Solution
+   + Analytic Solution
+   + Illustration of solution equivalence
+   + Time to equilibrium
+   + Sex Bias Equivalence
+2. Case-specific calculations
+   + Calculating the 95% confidence intervals for gender differences in reapplication
+3. Consideration of model variations
+   + Collecting selected applicants
+   + Applicant quality interactions
+   + Screening interactions
+4. References
+
+# Model Code
+   + Model
+   + Numeric Solution
+   + Analytic Solution
+   + Illustration of equivalence
+   + Time to equilibrium
+   
+# Case-specific calculations
+   + Calculating the 95% confidence intervals for gender differences in reapplication
+In additional analyses, we employ numerical simulations to determine a 95% confidence interval for the gender difference in reapplication parameter (g) in each of our three cases (see online code for details).
+
+# Consideration of model variations
+## Collecting selected applicants
+
+The model does not include a parameter for the exit of selected applicants. Instead, the stocks of selected men and women accumulate over time. This choice of “zero exit” (or, equivalently, infinite tenure) is conservative because, as model time progresses, the stocks of selected men and women can only become larger – from which it follows that later changes in the applicant pool’s composition can make only progressively smaller changes in the cumulative share of women among those selected. Allowing all selected applicants to accumulate without exit is thus the most conservative choice, and it yields a lower bound for the segregating effects of differences in reapplication. The corresponding upper bound comes from a model with instantaneous exit (or, equivalently, zero tenure). In this variant of our model, the stocks of selected applicants could be omitted entirely and the female share of all applicants (AW/(AW+AM)) would be the outcome of interest. Although this approach would make for a simpler model, the cost of that greater simplicity is that the segregating effects of gender differences in reapplication after rejection are then overstated. The likely true segregating effects are necessarily between the upper and lower bounds. Our tables report results from the model version that gives the more conservative lower-bound estimates, while our figures plot the results from both model variants.
+
+## Applicant quality interactions
+
+The model sets aside differences in applicant quality. This could be a problematic oversimplification if applicant quality were associated with gender differences in reapplication after rejection. For example, prior research finds that men are less likely than women to internalize negative assessments of their performance (Correll 2001). If so, then rejected men may reapply more randomly – entailing few quality differences between first-applying and reapplying men – while rejected women may reapply in a manner that more reflects the internalization of a negative assessment; the implication in this case would be that reapplying women were more different (than first-applying women) on some quality-related dimension. We searched for empirical evidence of gender differences in changes between new and reapplying applicants, both through our own analysis of the data from one of the three cases (i.e. crowdfunding – see online Appendix) and in findings documented by published studies. Using the crowdfunding data, we found no evidence for gender differences in project changes when the same project was re-proposed. The two other published studies that we used to ground our model (viz., Brands & Fernandez-Mateo 2017; Jensen et al. 2018) likewise find no significant gender differences in the effects of applicant quality on reapplication decisions. Kolev et al. (2019) and Penner and Willer (2019) report similar evidence in the contexts of grant applications and of retaking failed STEM classes; in other words, these authors did not find that quality differences drive gender differences in reapplication. Therefore, despite the potential role for applicant quality in reapplication behavior, we follow the best available evidence from multiple empirical analyses and exclude quality differences from our model. 
+
+We used the crowdfunding setting in two ways. First, we obtained the parameters to ground our model from an unpublished study by Greenberg, Kuppuswamy, and Mollick (2019; GKM for short) – see the main body of the paper. Second, we performed our own analysis of the data as a means of examining our model choices regarding applicant quality and screening effects from reapplication. This appendix describes in detail how we did so.
+
+### Data and Sample
+
+We drew on a sample of projects posted on Kickstarter (the world’s largest crowdfunding platform) between April 2009 and November 2014. The data were obtained from Kickspy, an online archive of Kickstarter projects. Because our focus was on reactions to rejection, our sample consisted of 62,853 projects that failed to reach their fundraising goal. To ensure that we considered meaningful first attempts to raise seed capital, we restricted our sample to projects that were the first crowdfunding attempt of a project creator and whose fundraising goal was at least $1,000. We also restricted our sample to project creators whose gender could be identified with a high level of confidence (probability of no less than 0.9). As noted by GKM, it is not uncommon for creators who fall short of their goal to launch a second project with a new fundraising goal set at or below what they raised in their first attempt. Such “money grab” projects typically represent attempts to raise money again for the same general idea from the first attempt, tapping the same community that supported the project the first time around. Thus, money grab second attempts represent more definitive cases of reapplication after rejection for the same idea in the context of crowdfunding (Greenberg et al. 2019). As we shall explain, this feature allows us to examine our modeling choices regarding (a) applicant quality (i.e., do men and women differ in the extent to which they alter project attributes following rejection for the same core idea?); and (b) screening effects from reapplication (i.e., do demand-side screeners evaluate reapplying male entrepreneurs differently than they evaluate reapplying female entrepreneurs?).
+
+### Dependent Variable
+
+The dependent variable for our analysis, Money Grab, is a binary indicator for whether the creator of a failed first project subsequently pursued a money grab. Among the 62,853 creators with failed first attempts, 1,050 (1.7%) of them launched a second crowdfunding campaign whose goal was set at or below the amount raised in the first campaign. Since our sample of crowdfunding projects was limited to those launched by the end of November 2014, we also checked for whether our results are robust to excluding projects launched near the end of the sample’s time frame. We find that the results are not affected by the exclusion of such projects.
+
+### Independent Variables
+
+Our primary independent variable is a binary indicator, Female Creator, that is set to 1 if the project creator is female or to 0 if the creator is male. The project creator’s gender was predicted via genderize.io, an online tool used in prior research that generates a gender prediction based on the focal individual’s first name (Greenberg & Mollick 2017; Greenberg et al. 2019). Of the 62,853 creators with failed first attempts, 16,236 (25.83%) are female.
+
+In addition to the project creator’s gender, we followed GKM and controlled for several additional attributes associated with the failed first crowdfunding attempt. These attributes included the performance of the first attempt relative to the project goal (First Performance, calculated as [funds raised − goal]/goal); an indicator for whether the first attempt was canceled before the fundraising deadline (Canceled Project); the number of words used to describe the project (Project Words); the existence of a “pitch” video (Video); indicators for whether the project was a “top update” (Updates) or a “top comment” (Comments) campaign (i.e., total updates/comments on the project webpage was in the 90th percentile or above); an indicator for whether, in the project’s category, women constituted the majority of creators (Majority Female Category); an indicator for whether the focal project category was associated with the launch of tangible product businesses (Tangible Business Category); and fixed effects for the month and year associated with the project’s launch.
+
+### Estimation Method: Matched Sample Using Coarsened Exact Matching (CEM)
+
+Before modeling the relationship between creator gender and the likelihood of launching a money grab attempt, we must account for potential bias arising from systematic differences in project attributes between men and women (Heckman 1979). To reduce this bias, we implemented the coarsened exact matching (CEM) nonparametric matching approach (Blackwell et al. 2009; Iacus et al. 2011). This approach consists of “coarsening” a set of observed covariates, performing exact matching on the coarsened data, “pruning” observations so that each stratum has at least one treatment and one control unit, and then running estimations using the original (but pruned) uncoarsened data (Aggarwal & Hsu 2013). Recent work has highlighted the benefits of CEM over propensity score matching (PSM), another commonly used matching technique. According to Iacus et al. (2011), CEM “generates matching solutions that are better balanced and estimates of the causal quantity of interest that have lower root mean square error than methods under the older existing class, such as those based on propensity scores, Mahalanobis distance, nearest neighbors, and optimal matching.” As a result, more recent studies that rely on matched samples (e.g., Kuppuswamy & Younkin 2019) tend to employ CEM rather than PSM. In our case, CEM produced samples of first projects by men and women that are relatively more comparable – especially with regard to the project variables selected for coarsening and subsequent exact matching. We therefore selected project variables that differ significantly, ex ante, between male- and female-led projects.
+
+We followed the GKM approach to matching male- and female-led projects on First Performance, Canceled Project, Video, Updates, Comments, Project Words, Majority Female Category, Tangible Business Category, and the year of the project. For our continuous matching covariates, we defined coarsening cut-points as follows: the 25th, 50th, and 75th percentiles for First Performance; the 25th, 50th, 75th, and 90th percentiles for Project Words; and 2012, 2013, and 2014 for the year of project launch. We used 0 and 1 as the “bucket cut-points” for our binary matching covariates.
+
+Our CEM-derived matched sample consisted of 62,354 projects: 16,175 from female creators and 46,179 from male creators. (To test for robustness, we also generated a matched sample of male and female projects using propensity score matching (PSM). Our analysis of the resulting sample yielded results that were strongly similar to those estimated using the CEM matched sample.) We assessed whether the matched sample consisted of a more comparable set of projects (than did the original sample) by estimating a linear probability models (with Female Creator as the outcome) using both the full sample and the matched sample along with their corresponding observation weights, which were used for all analyses involving CEM samples (Models [1] and [2] in Table A.2). Although we used a linear probability model to be consistent with the estimation procedures of GKM, all our analyses are robust to the use of binary outcome (e.g., probit) estimators. As expected, we find significant variation in the distribution of our independent variables across gender; in particular, most covariates correlate significantly with Female Creator in Model [1]. Yet these significant correlations are not observed Model [2] (i.e., when the sample is restricted to the matched sample), which indicates that male and female projects are indeed more comparable in the matched sample.
+
+### Money Grab Crowdfunding Estimation Results
+
+Using the matched sample of male and female crowdfunding projects, we model Money Grab as a function of Female Creator and other first-project characteristics. To remain consistent with GKM, we used a linear probability model as our main estimator for our binary outcome.(Several hypotheses in Greenberg et al. (2019) concern the moderating effects of gender in the context of crowdfunding. Given the active scholarly debate regarding the use and interpretation of interaction terms in nonlinear models (see e.g. Ai and Norton 2003; Greene 2010), GKM circumvent the issue by relying primarily on linear probability models in their analyses. However, these authors document that their results are robust to using a probit estimator in place of ordinary least squares.) Model [2] of Table A.2 reports the outcomes of this analysis; Model [1] presents the results of a linear probability model for the full sample of failed projects. From the matched-sample analysis in Model [2] we find that the coefficient for Female Creator is both negative and significant at the 1% level. In Model [3], we replaced our two control variables associated with the project’s category (viz., Tangible Business Category and Majority Female Category) with fixed effects for the 15 main project categories on Kickstarter; we find that the coefficient for Female Creator is still negative and significant at the 1% level. The Model [3] estimates suggest that the probability of launching a money grab is 0.018 for male creators versus 0.014 for female creators – a difference of 22%. In Model [4] we used a probit estimator to model Female Creator; once again, our results are consistent with the estimated probabilities equivalent to those from Model [3]. To increase the likelihood that we are examining repeated attempts of the same idea, as a final robustness test we further constrained our definition of money grabs. More specifically, we focused on post-failure money grab attempts that are in the same project category as the first attempt. The idea here is that, if the two attempts are in the same category, then the latter’s core idea is more likely to match the former’s. Models [5] and [6] give the results when this more stringent definition of a money grab is used, and they differ little from those derived using the other models in Table A.2. Thus, there is robust evidence that, after an initial failure, women are less likely than men to launch a money grab second attempt.
+
+As mentioned previously, the first goal of our investigation into money grab attempts is to test whether there are gender differences in the extent to which project attributes changed between the first and second attempt. Doing so enables us to explore the possibility that men and women differ, with respect to reapplication behavior, in ways that correlate with quality – for example, learning about their likelihood of success. Toward that end, we focused on project creators who actually launched money grab attempts: 1,050 creators in the full sample (226 women and 824 men). As before, we mitigated the bias arising from systematic differences in first-project characteristics across male and female money grab creators by using coarsened exact matching, with the same bucket cut-points, to create a matched sample of first projects from these creators. Our matched sample consisted of first attempts from 739 creators: 184 women and 555 men, all of whom subsequently did launch money grab attempts. For these money grab creators, we examined whether the distribution of project characteristics across genders changes significantly when we move from the matched sample of failed first attempts to the sample of money grab attempts. Since CEM eliminates any significant correlations between covariates and gender in the matched sample of first attempts, it follows that the re-emergence of significant correlations (between project characteristics and gender) in the sample of money grab attempts would be evidence of male–female differences in supply-side behavior following rejection.
+
+In Model [1] of Table A.3 we used a linear, ordinary least squares (OLS) estimator to model Female Creator as a function of first-project attributes; here the sample was limited to the 739 creators from the matched sample just described. We similarly modeled Female Creator as a function of money grab project attributes from the same set of creators in Model [2] (the covariates First Performance and Canceled Project were not included in this model because they represent outcomes related to first attempts). As expected, Model [1] yields little evidence of significant gendered-based differences (at the 5% level) in failed first-project attributes. Turning to Model [2], we again observe a lack of significant differences in project attributes across genders: no significant correlations re-emerge in the sample of money grab projects following failure. Thus, there are no gender differences evident in the behavior of creators following a failed first attempt and preceding a money grab. This conclusion holds even when we define money grab attempts more strictly – that is, as those in the same category as the first attempt (Models [3] and [4]).
+
+
+## Screening interactions
+
+The second objective of our money grab analysis is to examine screening effects from reapplication. In particular, we ask whether demand-side screeners evaluate reapplying male entrepreneurs differently than reapplying female entrepreneurs. We answer this question by investigating whether there exist gender differences in the success rate of money grab attempts launched by men and women who persisted after being rejected. Models [1] and [2] of Table A.4 report the results of linear models of funding success for money grab attempts (those launched by the 739 creators from our CEM matched sample). Here we likewise find no evidence that the creator’s gender has a significant effect on the success of money grab attempts. In an unreported analysis, we also investigated whether creator gender moderates the effect of any other predictors of money grab success; we find no significant indication of such moderating effects. Overall, then, we did not uncover any evidence that potential funders respond differently – that is, as a function of the applicant’s gender – to creators who launch money grab attempts. These analyses informed our modeling choices, among which are excluding the factors of applicant quality and screening effects from reapplication.
+
+Demand-side screeners might evaluate reapplying male candidates differently than reapplying female candidates. Gender-specific interpretation of identical behaviors has been documented in negotiations (Kulik & Olekalns 2012) and in the gendered labeling of behavior (Wajcman 2013), among other settings. To decide whether this factor should be incorporated into the model, we again searched for empirical evidence of its existence; however, we found none – neither in the crowdfunding data (see online Appendix) nor in published work. For example, Brands and Fernandez-Mateo (2017) report no gender differences in the likelihood of the search firm placing previously rejected candidates. If future research challenges these findings, then the model can be adjusted accordingly.    
+   
+
+# References
+Aggarwal VA, Hsu DH (2013) Entrepreneurial exits and innovation. Management Science, 60(4):867-887.
+
+Ai C, Norton EC (2003) Interaction terms in logit and probit models. Economics letters, 80(1), 123-129.
+
+Blackwell M, Iacus S, King G, Porro G (2009) cem: Coarsened exact matching in Stata. The Stata Journal, 9(4), 524-546.
+
+Greenberg J, Kuppuswamy V, Mollick ER (2019) Gender, Hubris, and the Interpretation of Signals in Crowdfunding. Working Paper.
+
+Greenberg J, Mollick E (2017) Activist choice homophily and the crowdfunding of female founders. Administrative Science Quarterly 62(2): 341-374.
+
+Greene W (2010) Testing hypotheses about interaction terms in nonlinear models. Economics Letters, 107(2), 291-296.
+
+Heckman JJ (1979) Sample selection bias as a specification error. Econometrica: Journal of the econometric society, 153-161.
+
+Iacus, S. M., King, G., & Porro, G. (2011). Multivariate matching methods that are monotonic imbalance bounding. Journal of the American Statistical Association, 106(493), 345-361.
+
+Kuppuswamy, V., & Younkin, P. (2019). Testing the Theory of Consumer Discrimination as an Explanation for the Lack of Minority Hiring in Hollywood Films. Management Science.
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
