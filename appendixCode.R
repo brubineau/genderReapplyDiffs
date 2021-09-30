@@ -106,3 +106,16 @@ plot(time2Eq1kMax1k[5,],time2Eq1kMax1k[6,]-time2Eq1kMax1k[7,])
 wShareEq <- function(p,r,b,g){
   return(wT(500,p,r,b)/(wT(500,p,r,b)+mT(500,p,r,b,g)))
 }
+
+
+# Sex Bia Equivalent
+getSBEWO <- function(pParam,rParam,wParam,oParam){
+  gParam <- oParam/(1-wParam+(oParam*wParam))
+  bParam <- wParam/(1+wParam-(gParam*wParam))
+  q <- equilPctFWO(pParam,rParam,wParam,oParam)
+  r <- rParam
+  p <- pParam
+  return(c(oddsR = round(((r*q) - q + p)*(1-q) / (q *(q - (q*r) + r - p)),4),
+           accM=round((r-1)*(q-1)/(1-p),4),
+           accW=round((q-(q*r))/p,4)))
+}

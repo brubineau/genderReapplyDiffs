@@ -1,7 +1,6 @@
 ---
 title: "Reject and Resubmit Appendix"
 author: "Fernandez-Mateo, Rubineau, Kuppuswamy"
-date: "9/28/2021"
 output: html_document
 ---
 
@@ -13,37 +12,196 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Contents
 1. Model Code
-   + Model
-   + Numeric Solution
-   + Analytic Solution
-   + Illustration of solution equivalence
-   + Time to equilibrium
-   + Sex Bias Equivalence
-2. Case-specific calculations
-   + Calculating the 95% confidence intervals for gender differences in reapplication
+   + [Model](#model)
+   + [Numeric Solution](#numeric-solution)
+   + [Analytic Solution](#analytic-solution)
+   + [Illustration of solution equivalence](#illustration-of-solution-equivalence)
+   + [Time to equilibrium](#time-to-equilibrium)
+   + [Sex Bias Equivalence](#sex-bias-equivalence)
+2. [Calculating the confidence intervals for gender differences in reapplication](#calculating-the-confidence-intervals-for-gender-differences-in-reapplication)
 3. Consideration of model variations
-   + Collecting selected applicants
-   + Applicant quality interactions
-   + Screening interactions
-4. References
+   + [Collecting selected applicants](#modeling-stocks-of-selected-applicants)
+   + [Applicant quality interactions](#applicant-quality-interactions)
+   + [Screening interactions](#screening-interactions)
+4. Code for plots
+   + [Figure 2](#figure-2)
+   + [Figure 3](#figure-3)
+   + [Figure 4](#figure-4)
+   + [Figure 5](#figure-5)
+   + [Figure 6](#figure-6)
+5. References
 
-# Model Code
-   + Model
-   + Numeric Solution
-   + Analytic Solution
-   + Illustration of equivalence
-   + Time to equilibrium
-   
-# Case-specific calculations
-   + Calculating the 95% confidence intervals for gender differences in reapplication
-In additional analyses, we employ numerical simulations to determine a 95% confidence interval for the gender difference in reapplication parameter (g) in each of our three cases (see online code for details).
+# 1. Model Code
 
-# Consideration of model variations
-## Collecting selected applicants
+[top](#contents)
 
-The model does not include a parameter for the exit of selected applicants. Instead, the stocks of selected men and women accumulate over time. This choice of “zero exit” (or, equivalently, infinite tenure) is conservative because, as model time progresses, the stocks of selected men and women can only become larger – from which it follows that later changes in the applicant pool’s composition can make only progressively smaller changes in the cumulative share of women among those selected. Allowing all selected applicants to accumulate without exit is thus the most conservative choice, and it yields a lower bound for the segregating effects of differences in reapplication. The corresponding upper bound comes from a model with instantaneous exit (or, equivalently, zero tenure). In this variant of our model, the stocks of selected applicants could be omitted entirely and the female share of all applicants (AW/(AW+AM)) would be the outcome of interest. Although this approach would make for a simpler model, the cost of that greater simplicity is that the segregating effects of gender differences in reapplication after rejection are then overstated. The likely true segregating effects are necessarily between the upper and lower bounds. Our tables report results from the model version that gives the more conservative lower-bound estimates, while our figures plot the results from both model variants.
+Our model analysis was implemented in R. We provide all code here.
+
+## Model
+
+[top](#contents)
+
+```{r }
+model <- function (t, state, parms) {
+  with(as.list(c(state, parms)), {
+    #  Formulae for Male/Men (M) and Female/Women (W) as in the Paper
+    dAM <- -AM + 1 - p + RM*b*g/(1+(b*g)-b) # Male applicants
+    dAW <- -AW + p + RW * b                 # Female applicants
+    dRM <- r*AM - RM                        # Rejected Men
+    dRW <- r*AW - RW                        # Rejected Women
+    list(c(dAM,dAW,dRM,dRW))
+  })
+}
+
+# Initial values for model - all stocks set to zero
+ini <- c(AM=0, AW=0, RM=0, RW=0)
+```
+
+## Numeric solution
+
+[top](#contents)
+
+
+```{r }
+require(deSolve)
+# appModel Function numericaly solves the continuous model
+# using the:
+#   specified model parameter values;
+#   provided initial conditions; 
+#   designated number of rounds (500 by default for equilibrium); and
+# returns the final female share among applicants.
+
+appModel <- function(rounds=500,pParam,rParam,bParam,gParam){
+  parmsOpen <- c(p=pParam,r=rParam,b=bParam,g=gParam) # specified model parametres
+  outOpen <- ode(y = ini,                    # initial conditions, 
+                 times = seq(0,rounds,0.01), # time horizon for model
+                 func = model,               # call to model
+                 parms = parmsOpen)          # parameters
+  # return the final women's share among all applicants
+  return(outOpen[dim(outOpen)[1],"AW"]/(outOpen[dim(outOpen)[1],"AW"]+outOpen[dim(outOpen)[1],"AM"]))
+}
+```
+
+## Analytic solution
+
+[top](#contents)
+
+We determined the analytic solutions to our model using Sage.
+```{r }
+# women in applicant pool at time t
+wT <- function(t,p,r,b){
+  return((b*p*r*cosh(sqrt(b*r)*t)/(b*r - 1) + b*p*r*sinh(sqrt(b*r)*t)/((b*r - 1)*sqrt(b*r)))*exp(-t) - p/(b*r - 1))  
+}
+# men in applicant pool at time t
+mT <- function(t,p,r,b,g){
+  return(((b^2*g^2 - (b^2 - b)*g - (b^2*g^2 - (b^2 - b)*g)*p)*(b*g - b + 1)*r*sinh(sqrt((b*g - b + 1)*b*g*r)*t/(b*g - b + 1))/(sqrt((b*g - b + 1)*b*g*r)*(b*g*r - b*g + b - 1)) + (b^2*g^2 - (b^2 - b)*g - (b^2*g^2 - (b^2 - b)*g)*p)*r*cosh(sqrt((b*g - b + 1)*b*g*r)*t/(b*g - b + 1))/(b*g*r - b*g + b - 1))*exp(-t)/(b*g - b + 1) - (b*g - (b*g - b + 1)*p - b + 1)/(b*g*r - b*g + b - 1))
+}
+# women's share among applicants at time t
+wShareT <- function(t,p,r,b,g){
+  return(wT(t,p,r,b)/(wT(t,p,r,b)+mT(t,p,r,b,g)))
+}
+```
+
+## Illustration of solution equivalence
+
+[top](#contents)
+
+Numeric and analytic solutions to differential equation models give results that can be made identical to arbitrary levels of accuracy. The average result for randomly-sampled points in the model's parameter space (including time) using the default numeric solution settings are outcomes that match to six decimal places.
+
+```{r }
+# put code here
+```
+
+## Time to equilibrium
+
+[top](#contents)
+
+We find that t=500 is sufficient to achieve equilibrium throughout the model's parameter space. We determine equilibrium has been reached when there is no change in results to any of 16 decimal places between time t and time t+100.
+
+```{r }
+# put code here
+```
+
+## Sex Bias Equivalence
+
+[top](#contents)
+
+We calculate the odds ratio favoring men in selection that yields the same compositional changes as those from gender differences in reapplication (for a particular set of model parameters) as the sex bias equivlance (of that particular set of model parameters). The code for these calculations are below.
+
+
+```{r }
+# put code here
+```
+
+# Calculating the confidence intervals for gender differences in reapplication
+
+[top](#contents)
+
+We employ numerical simulations to determine a 95% confidence interval for the gender difference in reapplication parameter (g) in each of our three cases. We treat the probability of men's reapplication and probability of women's reapplication as a binomial random variable with the case-provided point estimates. We then run simulations of similarly-sized populations using those probabilities to generate a distribution of simulated gender differences in reapplication. We use the values that are +/- 1.96 standard deviations of this simulated distribution as the 95% CI for these values.
+
+```{r }
+cases <- data.frame(caseID=c(   "ExecSearch",    "CrowdFund",    "Patenting"),
+                    # MODEL PARAMETERS - g is calculated below
+                    p=c(                0.16,           0.29,          0.088), # female share among applicants
+                    r=c(                0.96,           0.64,           0.86), # rejection rate
+                    b=c(              0.6878,         0.1117,         0.5441), # central reapplication rate after rejection
+                    # OTHER CASE DATA
+                    obs.m=c(           21952, round(98131*(1-0.29),0), round(3370800*(1-0.088),0)), # count of men in each case
+                    obs.f=c(            1603, round(98131*0.29,0),    round(3370800*0.088,0)), # count of women in each case
+                    pr.reapply.m=c( 1-0.2924,        0.13672,         0.5555), # estimates of reapplication probabilities for men
+                    pr.reapply.f=c( 1-0.3558,        0.10854,         0.5305)) # estimates of reapplication probabilities for women
+
+cases$g <- cases$pr.reapply.m*(1-cases$pr.reapply.f)/(cases$pr.reapply.f*(1-cases$pr.reapply.m))
+
+getGs <- lapply(as.list(1:3),function(c){
+  replicate(100000, # generates 100k instances of g (odds ratio of men's higher rate of reapplication relative to women)
+            {m <- (rbinom(n=1,  # rbinom returns number of successes (reapplications) from the same number of men at men's case-identified probability of reapplying
+                    size=cases$obs.m[c],
+                    prob=cases$pr.reapply.m[c])/cases$obs.m[c]) # dividing by number of men yields proportion of men who reapplied
+            w <- (rbinom(n=1, # rbinom returns number of successes (reapplications) from the same number of women at women's case-identified probability of reapplying
+                      size=cases$obs.f[c],
+                      prob=cases$pr.reapply.f[c])/cases$obs.f[c])
+            return(m*(1-w)/(w*(1-m))) # odds ratio of men's higher rate of reapplication relative to women
+            })
+})
+
+# 95% CI taken from the simulated distribution
+cases$glb <- cases$g - (unlist(lapply(getGs,quantile,probs=0.975))-unlist(lapply(getGs,quantile,probs=0.025)))/2 # lower bound of 95%CI
+cases$gub <- cases$g + (unlist(lapply(getGs,quantile,probs=0.975))-unlist(lapply(getGs,quantile,probs=0.025)))/2 # upper bound of 95%CI
+```
+
+# 3. Consideration of model variations
+
+[top](#contents)
+
+A well-used aphorism among modelers is that models should be as simple as possible, but not simpler. The "but not simpler" caveat is important. Omitting an important mechanism in a model is similar to omitting a confounding control variable from a regression - results can be problematically biased.
+
+We consider three such potential omissions from our model: (1) not examining selected applicants explicitly, (2) omitting the possibility that the reapplication decision may be associated with applicant quality, and (3) omitting the possibility that evaluation of applicants may be affected by reapplication status. Each of these omissions could plausibly influence our inferences from our model analysis. We provide a detailed examination of each omission below. For the first omission, we conclude that the equilibrium composition is not affected. For the second and third items, we examine empirical results for such effects. For the quality interaction concern, we conduct a new empirical analysis. In both cases, we find no evidence for such interacting mechanisms. Absent evidence for the presence of these mechanisms, we keep our model in its simplified form. 
+
+## Modeling stocks of selected applicants
+
+[top](#contents)
+
+### Finding: Modeling stocks of selected applicants and examining the share of women across those stocks has no effect on the equilibrium share of women.
+
+The model does not include a stock for selected applicants. In selection contexts such as applying for crowdfunding or patenting, the collection of applicants who have received funding or been awarded a patent, would join such a stock and (except for extreme circumstances) remain in that stock. In selection contexts such as hiring, selected applicants join an organization as an employee until they exit that organization. The lower the organizational exit rate (same as the longer the organizational tenure), the more a hiring context resembles those of patenting and crowdfunding. Conversely, the higher the organizational exit rate, the more the results will resemble our model that omits stocks of selected applicants.  
+
+In this way, we can see the emergence of an upper and lower bound for the model effects. Our model represents the upper bound. That is, segregating effects manifest more quickly. It would be identical to the situation where we have a model of selected applicants, but the exit rate from that stock is instantaneous. Women's share of selected applicants would be the same as the women's share of the applicant pool at that time (because selection is not gender biased in our model), and then the stock would empty.
+
+The lower bound is the situation such as patenting and crowdfunding, where selected applicants never leave the stock of selectd applicants. It is a situation of a zero exit rate. This situation creates a lower bound because, as model time progresses, the stocks of selected men and women can only become larger – from which it follows that later changes in the applicant pool’s composition can make only progressively smaller changes in the cumulative share of women among those selected. Allowing all selected applicants to accumulate without exit yields the slowest manifestation of the segregating effects of differences in reapplication. The case of hiring into a firm with an exit rate neither zero nor one is necessarily between these two bounding scenarios.
+
+Are the equilibrium compositions from these two versions of the model different for the same location in the model's parameter space? No they are not. It is only the speed with which they reach the equilibrium that differs. Because the equilibria from both forms of the model are identical, we use the simpler version.
+
+
+```{r }
+# put code here
+```
 
 ## Applicant quality interactions
+
+[top](#contents)
+
+### Finding: After examining several empirical contexts where differential reapplication behavior by the quality of the applicant can be observed, we find no such quality effects on reapplication behaviors.
 
 The model sets aside differences in applicant quality. This could be a problematic oversimplification if applicant quality were associated with gender differences in reapplication after rejection. For example, prior research finds that men are less likely than women to internalize negative assessments of their performance (Correll 2001). If so, then rejected men may reapply more randomly – entailing few quality differences between first-applying and reapplying men – while rejected women may reapply in a manner that more reflects the internalization of a negative assessment; the implication in this case would be that reapplying women were more different (than first-applying women) on some quality-related dimension. We searched for empirical evidence of gender differences in changes between new and reapplying applicants, both through our own analysis of the data from one of the three cases (i.e. crowdfunding – see online Appendix) and in findings documented by published studies. Using the crowdfunding data, we found no evidence for gender differences in project changes when the same project was re-proposed. The two other published studies that we used to ground our model (viz., Brands & Fernandez-Mateo 2017; Jensen et al. 2018) likewise find no significant gender differences in the effects of applicant quality on reapplication decisions. Kolev et al. (2019) and Penner and Willer (2019) report similar evidence in the contexts of grant applications and of retaking failed STEM classes; in other words, these authors did not find that quality differences drive gender differences in reapplication. Therefore, despite the potential role for applicant quality in reapplication behavior, we follow the best available evidence from multiple empirical analyses and exclude quality differences from our model. 
 
@@ -82,12 +240,59 @@ In Model [1] of Table A.3 we used a linear, ordinary least squares (OLS) estimat
 
 ## Screening interactions
 
+[top](#contents)
+
+### Finding: After examining an empirical context where differential screening behavior by reapplication status can be observed, we find no such screening differences.
+
 The second objective of our money grab analysis is to examine screening effects from reapplication. In particular, we ask whether demand-side screeners evaluate reapplying male entrepreneurs differently than reapplying female entrepreneurs. We answer this question by investigating whether there exist gender differences in the success rate of money grab attempts launched by men and women who persisted after being rejected. Models [1] and [2] of Table A.4 report the results of linear models of funding success for money grab attempts (those launched by the 739 creators from our CEM matched sample). Here we likewise find no evidence that the creator’s gender has a significant effect on the success of money grab attempts. In an unreported analysis, we also investigated whether creator gender moderates the effect of any other predictors of money grab success; we find no significant indication of such moderating effects. Overall, then, we did not uncover any evidence that potential funders respond differently – that is, as a function of the applicant’s gender – to creators who launch money grab attempts. These analyses informed our modeling choices, among which are excluding the factors of applicant quality and screening effects from reapplication.
 
 Demand-side screeners might evaluate reapplying male candidates differently than reapplying female candidates. Gender-specific interpretation of identical behaviors has been documented in negotiations (Kulik & Olekalns 2012) and in the gendered labeling of behavior (Wajcman 2013), among other settings. To decide whether this factor should be incorporated into the model, we again searched for empirical evidence of its existence; however, we found none – neither in the crowdfunding data (see online Appendix) nor in published work. For example, Brands and Fernandez-Mateo (2017) report no gender differences in the likelihood of the search firm placing previously rejected candidates. If future research challenges these findings, then the model can be adjusted accordingly.    
    
+# 4. Code for plots
 
-# References
+[top](#contents)
+
+## Figure 2
+
+
+```{r }
+# put code here
+```
+
+
+## Figure 3
+
+
+```{r }
+# put code here
+```
+
+## Figure 4
+
+
+```{r }
+# put code here
+```
+
+## Figure 5
+
+
+```{r }
+# put code here
+```
+
+## Figure 6
+
+
+```{r }
+# put code here
+```
+
+
+# 5. References
+
+[top](#contents)
+
 Aggarwal VA, Hsu DH (2013) Entrepreneurial exits and innovation. Management Science, 60(4):867-887.
 
 Ai C, Norton EC (2003) Interaction terms in logit and probit models. Economics letters, 80(1), 123-129.
@@ -105,6 +310,12 @@ Heckman JJ (1979) Sample selection bias as a specification error. Econometrica: 
 Iacus, S. M., King, G., & Porro, G. (2011). Multivariate matching methods that are monotonic imbalance bounding. Journal of the American Statistical Association, 106(493), 345-361.
 
 Kuppuswamy, V., & Younkin, P. (2019). Testing the Theory of Consumer Discrimination as an Explanation for the Lack of Minority Hiring in Hollywood Films. Management Science.
+
+SageMath, the Sage Mathematics Software System (Version 9.4),
+   The Sage Developers, Jason Grout, Ira Hansonm, Steven Johnson, Alex Kramer, Andrey Novoseltsev, William Stein. https://www.sagemath.org.
+
+Soetaert, K., Petzoldt, T., & Setzer, R. W. (2010). Solving Differential Equations in R: Package deSolve. Journal of Statistical Software, 33(9), 1–25. https://doi.org/10.18637/jss.v033.i09
+
 
 ```{r cars}
 summary(cars)
