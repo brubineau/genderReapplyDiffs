@@ -57,6 +57,12 @@ wShareT <- function(t,p,r,b,g){
   return(wT(t,p,r,b)/(wT(t,p,r,b)+mT(t,p,r,b,g)))
 }
 
+
+eqT <- function(p,r,b,g){
+  eqt <- log(((sqrt(b*r)*b*g*r - ((sqrt(b*r)*r^2 - sqrt(b*r)*r)*g^2 + sqrt(b*r)*g*r)*b^2)*cosh(sqrt(b*r)*t)*sinh(sqrt((b^2*g^2 - (b^2 - b)*g)*r)*t/(b*g - b + 1)) + ((sqrt((b^2*g^2 - (b^2 - b)*g)*r)*b^2*g*r^2 - sqrt((b^2*g^2 - (b^2 - b)*g)*r)*b*g*r)*cosh(sqrt((b^2*g^2 - (b^2 - b)*g)*r)*t/(b*g - b + 1)) + ((g^2*r^2 - g*r^2)*b^3 - (g^2*r^2 - g*r^2)*b^2)*sinh(sqrt((b^2*g^2 - (b^2 - b)*g)*r)*t/(b*g - b + 1)))*sinh(sqrt(b*r)*t))/(((sqrt((b^2*g^2 - (b^2 - b)*g)*r)*g*r - sqrt((b^2*g^2 - (b^2 - b)*g)*r)*r)*b^2 - (sqrt((b^2*g^2 - (b^2 - b)*g)*r)*g - sqrt((b^2*g^2 - (b^2 - b)*g)*r)*r - sqrt((b^2*g^2 - (b^2 - b)*g)*r))*b - sqrt((b^2*g^2 - (b^2 - b)*g)*r))*sinh(sqrt(b*r)*t) - (((sqrt(b*r)*r - sqrt(b*r))*g^2 + sqrt(b*r)*g)*b - sqrt(b*r)*g)*sinh(sqrt((b^2*g^2 - (b^2 - b)*g)*r)*t/(b*g - b + 1))))
+  return(eqt)
+}
+
 #####################################################
 # Illustrating equivalence of both solution methods
 # -------------------------------------------------
@@ -79,9 +85,9 @@ compareSols <- function(){
 set.seed(100) # to reproduce shared results, use the same random seed
               # to generate new results, set a new seed or omit the prior line
 diff1k <- replicate(1000,compareSols()) # Note - this may require close to an hour to complete
-mean(diff1k[2,],na.rm=T) #  4.29 * 10^-6
-max(diff1k[2,],na.rm=T)  #  1.48 * 10^-3
-min(diff1k[2,],na.rm=T)  # -3.09 * 10^-15
+mean(diff1k[2,],na.rm=T) #  2.0 * 10^-6
+max(diff1k[2,],na.rm=T)  #  6.7 * 10^-4
+min(diff1k[2,],na.rm=T)  # -3.7 * 10^-15
 plot(density(diff1k[2,],na.rm=T)) # note almost all results are indistinguishable from zero
 plot(diff1k[1,],diff1k[2,],xlab="model time value (t)",ylab="Numeric - Analytic Result",type="p")
 
