@@ -48,8 +48,8 @@ Our model analysis was implemented in R. We provide all code here.
 model <- function (t, state, parms) {
   with(as.list(c(state, parms)), {
     #  Formulae for Male/Men (M) and Female/Women (W) as in the Paper
-    dAM <- -AM + 1 - p + RM*b*g/(1+(b*g)-b) # Male applicants
-    dAW <- -AW + p + RW * b                 # Female applicants
+    dAM <- -AM + 1 - p + RM*b*g/(1+(b*g)-b) # Applying Men
+    dAW <- -AW + p + RW * b                 # Applying Women
     dRM <- r*AM - RM                        # Rejected Men
     dRW <- r*AW - RW                        # Rejected Women
     list(c(dAM,dAW,dRM,dRW))
@@ -72,7 +72,7 @@ require(deSolve)
 #   specified model parameter values;
 #   provided initial conditions; 
 #   designated number of rounds (500 by default for equilibrium); and
-# returns the final female share among applicants.
+# returns the final women's share of the applicant pool.
 
 appModel <- function(rounds=500,pParam,rParam,bParam,gParam){
   parmsOpen <- c(p=pParam,r=rParam,b=bParam,g=gParam) # specified model parametres
@@ -80,7 +80,7 @@ appModel <- function(rounds=500,pParam,rParam,bParam,gParam){
                  times = seq(0,rounds,0.01), # time horizon for model
                  func = model,               # call to model
                  parms = parmsOpen)          # parameters
-  # return the final women's share among all applicants
+  # return the final women's share of the applicant pool
   return(outOpen[dim(outOpen)[1],"AW"]/(outOpen[dim(outOpen)[1],"AW"]+outOpen[dim(outOpen)[1],"AM"]))
 }
 ```
@@ -99,7 +99,7 @@ wT <- function(t,p,r,b){
 mT <- function(t,p,r,b,g){
   return(((b^2*g^2 - (b^2 - b)*g - (b^2*g^2 - (b^2 - b)*g)*p)*(b*g - b + 1)*r*sinh(sqrt((b*g - b + 1)*b*g*r)*t/(b*g - b + 1))/(sqrt((b*g - b + 1)*b*g*r)*(b*g*r - b*g + b - 1)) + (b^2*g^2 - (b^2 - b)*g - (b^2*g^2 - (b^2 - b)*g)*p)*r*cosh(sqrt((b*g - b + 1)*b*g*r)*t/(b*g - b + 1))/(b*g*r - b*g + b - 1))*exp(-t)/(b*g - b + 1) - (b*g - (b*g - b + 1)*p - b + 1)/(b*g*r - b*g + b - 1))
 }
-# women's share among applicants at time t
+# women's share of the applicant pool at time t
 wShareT <- function(t,p,r,b,g){
    womensShare <- wT(t,p,r,b)/(wT(t,p,r,b)+mT(t,p,r,b,g))
 #   if (is.na(womensShare)){
@@ -118,17 +118,19 @@ Numeric and analytic solutions to differential equation models give results that
 ```{r }
 # function compareSols takes no arguments
 # it samples a random point in the model's parameter space (including time)
-# and finds the women's share among applicants at that point in parameter space
-# using both the numeric and analytical solutions from above.
+# and finds the women's share of the applicant pool 
+# at that point in the parameter space using both 
+# the numeric and analytical solutions from above.
 # The function returns the difference (numerical - analytical) and the time step.
+
 compareSols <- function(){
   # pick random values for model parameters within finite ranges
   pRand <- runif(1,min=0.01,max=0.49) # women's share of first-time applicants
   rRand <- runif(1,min=0.01,max=0.99) # rejection rate
-  bRand <- runif(1,min=0.01,max=0.99) # baseline (women's) reapplication rate
+  bRand <- runif(1,min=0.01,max=0.99) # rate of reapplication by rejected women
   gRand <- runif(1,min=1,max=10)      # odds ratio 
   tRand <- runif(1,min=10,max=1000)   # time 
-  numSol <- appModel(tRand,pRand,rRand,bRand,gRand) # get the outcome - women's share of applicants - via the numeric solution
+  numSol <- appModel(tRand,pRand,rRand,bRand,gRand) # get the outcome - women's share of applicant pool - via the numeric solution
   frmSol <- wShareT(tRand,pRand,rRand,bRand,gRand)  # get the same outcome from the formal analytic solution
   return(c(time=tRand,diff=as.numeric(numSol - frmSol))) # return the difference between the 2 solutions
 }
@@ -164,8 +166,8 @@ time2Eq <- function(maxTime){
   # pick random values for model parameters within finite ranges
   pRand <- runif(1,min=0.01,max=0.49) # women's share of first-time applicants
   rRand <- runif(1,min=0.01,max=0.99) # rejection rate
-  bRand <- runif(1,min=0.01,max=0.99) # baseline (women's) reapplication rate
-  gRand <- runif(1,min=1,max=10)      # gender difference odds ratio in reapplication
+  bRand <- runif(1,min=0.01,max=0.99) # rate of reapplication by rejected women
+  gRand <- runif(1,min=1,max=10)      # gender difference in reapplication rates (odds ratio)
   tRand <- runif(1,min=10,max=maxTime)   # time 
   frmSol <- wShareT(tRand,pRand,rRand,bRand,gRand)  # get the same outcome from the formal analytic solution
 return(c(rParam=rRand,bParam=bRand,gParam=gRand,pParam=pRand, # return parameter values
@@ -188,16 +190,37 @@ plot(time2Eq1kMax1k[5,],time2Eq1kMax1k[6,]-time2Eq1kMax1k[7,],
      xlab="Model Time",
      ylab="t and t+100 Difference")
 ```
-
+Based on these results, we use t=500 for calculating women's share at equilibrium.
+```{r}
+wShareEq <- function(p,r,b,g){
+   return(wShareT(t=500,p=p,r=r,b=b,g=g))
+}
+```
 ## Sex Bias Equivalence
 
 [top](#contents)
 
-We calculate the odds ratio favoring men in selection that yields the same compositional changes as those from gender differences in reapplication (for a particular set of model parameters) as the sex bias equivlance (of that particular set of model parameters). The code for these calculations are below.
+We calculate the odds ratio favoring men in selection that yields the same compositional changes as those from gender differences in reapplication (for a particular set of model parameters) as the sex bias equivalence (of that particular set of model parameters). The code for these calculations are below.
 
 
 ```{r }
-# put code here
+# Sex Bias Equivalence (SBE) function
+# Gives the Odds Ratio favoring men in selection that yields the same
+# women's share among selected as given by
+# our gender differences in reapplication model at equilibrium
+# for matching parameter values (p & r).
+# The model returns the Odds ratio along with
+# the acceptance rate for men and
+# the acceptance rate for women that
+# represent the sex bias equivalent.
+
+sbe <- function(p,r,b,g){
+   q <- wShareEq(p,r,b,g)
+   s <- (((r*q) - q + p)*(1-q)) / (q *(q - (q*r) + r - p))
+   return(c(oddsR = round(s,4),
+            accM=round((r-1)*(q-1)/(1-p),4),
+            accW=round((q-(q*r))/p,4)))
+}
 ```
 
 # Calculating the confidence intervals for gender differences in reapplication
@@ -209,16 +232,16 @@ We employ numerical simulations to determine a 95% confidence interval for the g
 ```{r }
 cases <- data.frame(caseID=c(   "ExecSearch",    "CrowdFund",    "Patenting"),
                     # MODEL PARAMETERS - g is calculated below
-                    p=c(                0.16,           0.29,          0.088), # female share among applicants
+                    p=c(                0.16,           0.29,          0.088), # women's share among applicants
                     r=c(                0.96,           0.64,           0.86), # rejection rate
-                    b=c(              0.6878,         0.1117,         0.5441), # central reapplication rate after rejection
                     # OTHER CASE DATA
                     obs.m=c(           21952, round(98131*(1-0.29),0), round(3370800*(1-0.088),0)), # count of men in each case
-                    obs.f=c(            1603, round(98131*0.29,0),    round(3370800*0.088,0)), # count of women in each case
+                    obs.w=c(            1603, round(98131*0.29,0),    round(3370800*0.088,0)), # count of women in each case
                     pr.reapply.m=c( 1-0.2924,        0.13672,         0.5555), # estimates of reapplication probabilities for men
-                    pr.reapply.f=c( 1-0.3558,        0.10854,         0.5305)) # estimates of reapplication probabilities for women
+                    pr.reapply.w=c( 1-0.3558,        0.10854,         0.5305)) # estimates of reapplication probabilities for women
 
-cases$g <- cases$pr.reapply.m*(1-cases$pr.reapply.f)/(cases$pr.reapply.f*(1-cases$pr.reapply.m))
+cases$b <- cases$pr.reapply.w
+cases$g <- cases$pr.reapply.m*(1-cases$pr.reapply.w)/(cases$pr.reapply.w*(1-cases$pr.reapply.m))
 
 getGs <- lapply(as.list(1:3),function(c){
   replicate(100000, # generates 100k instances of g (odds ratio of men's higher rate of reapplication relative to women)
@@ -226,15 +249,19 @@ getGs <- lapply(as.list(1:3),function(c){
                     size=cases$obs.m[c],
                     prob=cases$pr.reapply.m[c])/cases$obs.m[c]) # dividing by number of men yields proportion of men who reapplied
             w <- (rbinom(n=1, # rbinom returns number of successes (reapplications) from the same number of women at women's case-identified probability of reapplying
-                      size=cases$obs.f[c],
-                      prob=cases$pr.reapply.f[c])/cases$obs.f[c])
+                      size=cases$obs.w[c],
+                      prob=cases$pr.reapply.w[c])/cases$obs.w[c])
             return(m*(1-w)/(w*(1-m))) # odds ratio of men's higher rate of reapplication relative to women
             })
 })
 
 # 95% CI taken from the simulated distribution
+# lower-bound for g in the 95% CI
 cases$glb <- cases$g - (unlist(lapply(getGs,quantile,probs=0.975))-unlist(lapply(getGs,quantile,probs=0.025)))/2 # lower bound of 95%CI
+# upper-bound for g in the 95% CI
 cases$gub <- cases$g + (unlist(lapply(getGs,quantile,probs=0.975))-unlist(lapply(getGs,quantile,probs=0.025)))/2 # upper bound of 95%CI
+
+t(cases)
 ```
 
 # 3. Consideration of model variations
@@ -243,29 +270,29 @@ cases$gub <- cases$g + (unlist(lapply(getGs,quantile,probs=0.975))-unlist(lapply
 
 A well-used aphorism among modelers is that models should be as simple as possible, but not simpler. The "but not simpler" caveat is important. Omitting an important mechanism in a model is similar to omitting a confounding control variable from a regression - results can be problematically biased.
 
-We consider three such potential omissions from our model: (1) not examining selected applicants explicitly, (2) omitting the possibility that the reapplication decision may be associated with applicant quality, and (3) omitting the possibility that evaluation of applicants may be affected by reapplication status. Each of these omissions could plausibly influence our inferences from our model analysis. We provide a detailed examination of each omission below. For the first omission, we conclude that the equilibrium composition is not affected. For the second and third items, we examine empirical results for such effects. For the quality interaction concern, we conduct a new empirical analysis. In both cases, we find no evidence for such interacting mechanisms. Absent evidence for the presence of these mechanisms, we keep our model in its simplified form. 
+We consider three such potential omissions from our model: (1) not examining selected applicants explicitly, (2) omitting the possibility that the reapplication decision may be associated with applicant quality (i.e., applicant quality interactions), and (3) omitting the possibility that evaluation of applicants may be affected by reapplication status (i.e., screening interactions). Each of these omissions could plausibly influence our inferences from our model analysis. We provide a detailed examination of each omission below. For the first omission, we conclude that the equilibrium composition is not affected. For the second and third items, we examine empirical results for such effects. For the quality interaction concern, we conduct a new empirical analysis. In both cases, we find no evidence for such interacting mechanisms. Absent evidence for the presence of these mechanisms, we keep our model in its simplified form. 
 
-## Modeling stocks of selected applicants
+## (1) Modeling stocks of selected applicants
 
 [top](#contents)
 
-### Finding: Modeling stocks of selected applicants and examining the share of women across those stocks has no effect on the equilibrium share of women.
+### Finding: Modeling stocks of selected applicants and examining the women's share  across those stocks has no effect on the equilibrium women's share.
 
-The model does not include a stock for selected applicants. In selection contexts such as applying for crowdfunding or patenting, the collection of applicants who have received funding or been awarded a patent, would join such a stock and (except for extreme circumstances) remain in that stock. In selection contexts such as hiring, selected applicants join an organization as an employee until they exit that organization. The lower the organizational exit rate (same as the longer the organizational tenure), the more a hiring context resembles those of patenting and crowdfunding. Conversely, the higher the organizational exit rate, the more the results will resemble our model that omits stocks of selected applicants.  
+The model does not include a stock for selected applicants. In selection contexts such as applying for crowdfunding or patenting, the applicants who have received funding or been awarded a patent, would join such a stock and (except for extreme circumstances) remain in that stock. In selection contexts such as hiring, selected applicants join an organization as an employee until they exit that organization. The lower the organizational exit rate (same as the longer the organizational tenure), the more a hiring context resembles those of patenting and crowdfunding. Conversely, the higher the organizational exit rate, the more the results will resemble our model that omits stocks of selected applicants.  
 
 In this way, we can see the emergence of an upper and lower bound for the model effects. Our model represents the upper bound. That is, segregating effects manifest more quickly. It would be identical to the situation where we have a model of selected applicants, but the exit rate from that stock is instantaneous. Women's share of selected applicants would be the same as the women's share of the applicant pool at that time (because selection is not gender biased in our model), and then the stock would empty.
 
-The lower bound is the situation such as patenting and crowdfunding, where selected applicants never leave the stock of selectd applicants. It is a situation of a zero exit rate. This situation creates a lower bound because, as model time progresses, the stocks of selected men and women can only become larger – from which it follows that later changes in the applicant pool’s composition can make only progressively smaller changes in the cumulative share of women among those selected. Allowing all selected applicants to accumulate without exit yields the slowest manifestation of the segregating effects of differences in reapplication. The case of hiring into a firm with an exit rate neither zero nor one is necessarily between these two bounding scenarios.
+The lower bound is the situation such as patenting and crowdfunding, where selected applicants never leave the stock of selected applicants. It is a situation of a zero exit rate. This situation creates a lower bound because, as model time progresses, the stocks of selected men and women can only become larger – from which it follows that later changes in the applicant pool’s composition can make only progressively smaller changes in the cumulative share of women among those selected. Allowing all selected applicants to accumulate without exit yields the slowest manifestation of the segregating effects of differences in reapplication. The case of hiring into a firm with an exit rate neither zero nor one is necessarily between these two bounding scenarios.
 
-Are the equilibrium compositions from these two versions of the model different for the same location in the model's parameter space? No they are not. It is only the speed with which they reach the equilibrium that differs. Because the equilibria from both forms of the model are identical, we use the simpler version.
+Are the equilibrium compositions from these two versions of the model different for the same location in the model's parameter space? No they are not. It is only the speed with which they reach the equilibrium that differs. Because the equilibria from both forms of the model are identical, we use the simpler version in the paper.
 
 
 ```{r }
 model0Exit <- function (t, state, parms) {
   with(as.list(c(state, parms)), {
     #  Formulae for Men (M) and Women (W) as in the Paper
-    dAM <- -AM + ((g*b/(1+(g*b)-b)) * RM) + 1-p # Male applicants
-    dAW <- -AW + b * RW + p                     # Female applicants
+    dAM <- -AM + ((g*b/(1+(g*b)-b)) * RM) + 1-p # Applying Men
+    dAW <- -AW + b * RW + p                     # Applying Women
     dRM <- r*AM - RM                            # Rejected Men
     dRW <- r*AW - RW                            # Rejected Women
     dSM <- (1-r)*AM # Selected Men - the new stock collecting selected men
@@ -279,44 +306,45 @@ ini0Exit <- c(AM=0, AW=0, RM=0, RW=0, SM=0, SW=0) # all stocks zero
 #   specified model parameter values;
 #   provided initial conditions; 
 #   designated numer of rounds; and
-# returns the final female share among all accepted (selected) men and women.
+# returns the final women's share of all selected men and women.
 selModel <- function(rounds,pParam,gParam,bParam,rParam){
   parmsOpen <- c(p=pParam,r=rParam,b=bParam,g=gParam) # specified model parameters
   outOpen <- ode(y = ini0Exit, times = seq(0,rounds,0.01), # initial conditions, times, 
                  func = model0Exit, parms = parmsOpen)     # model, and parameters
-  # return the final female share among all accepted (selected) Men and Women
+  # return the final women's share among all selected men and women
   return(outOpen[dim(outOpen)[1],"SW"]/
             (outOpen[dim(outOpen)[1],"SW"]+outOpen[dim(outOpen)[1],"SM"]))
 }
 ```
 
-## Applicant quality interactions
+## (2) Applicant quality interactions
 
 [top](#contents)
 
-### Finding: After examining several empirical contexts where differential reapplication behavior by the quality of the applicant can be observed, we find no such quality effects on reapplication behaviors.
+### Finding: After examining several empirical contexts where differential reapplication behavior by the quality of the applicant could be observed, we find no such quality effects on reapplication behaviors.
 
 The model sets aside differences in applicant quality. This could be a problematic oversimplification if applicant quality were associated with gender differences in reapplication after rejection. For example, prior research finds that men are less likely than women to internalize negative assessments of their performance (Correll 2001). If so, then rejected men may reapply more randomly – entailing few quality differences between first-applying and reapplying men – while rejected women may reapply in a manner that more reflects the internalization of a negative assessment; the implication in this case would be that reapplying women were more different (than first-applying women) on some quality-related dimension. We searched for empirical evidence of gender differences in changes between new and reapplying applicants, both through our own analysis of the data from one of the three cases (i.e. crowdfunding) and in findings documented by published studies. Using the crowdfunding data, we find no evidence for gender differences in project changes when the same project was re-proposed. 
 
 The two other published studies that we used to ground our model (viz., Brands & Fernandez-Mateo 2017; Jensen et al. 2018) likewise find no significant gender differences in the effects of applicant quality on reapplication decisions. Kolev et al. (2019) and Penner and Willer (2019) report similar evidence in the contexts of grant applications and of retaking failed STEM classes; in other words, these authors did not find that quality differences drive gender differences in reapplication. Therefore, despite the potential role for applicant quality in reapplication behavior, we follow the best available evidence from multiple empirical analyses and exclude quality differences from our model. 
 
-We use the crowdfunding setting to perform our own analysis of the data as a means of examining our model choices regarding both applicant quality and screening effects from reapplication. We describe in detail how we did so.
+In addition, we use the crowdfunding setting to perform our own analysis of the data as a means of examining our model choices regarding both applicant quality and screening effects from reapplication. We describe in detail how we did so.
 
-### Data and Sample
+### Crowdfunding Analysis
+#### Data and Sample
 
 We drew on a sample of projects posted on Kickstarter (the world’s largest crowdfunding platform) between April 2009 and November 2014. The data were obtained from Kickspy, an online archive of Kickstarter projects. Because our focus was on reactions to rejection, our sample consisted of 62,853 projects that failed to reach their fundraising goal. To ensure that we considered meaningful first attempts to raise seed capital, we restricted our sample to projects that were the first crowdfunding attempt of a project creator and whose fundraising goal was at least $1,000. We also restricted our sample to project creators whose gender could be identified with a high level of confidence (probability of no less than 0.9). As noted by GKM, it is not uncommon for creators who fall short of their goal to launch a second project with a new fundraising goal set at or below what they raised in their first attempt. Such “money grab” projects typically represent attempts to raise money again for the same general idea from the first attempt, tapping the same community that supported the project the first time around. Thus, money grab second attempts represent more definitive cases of reapplication after rejection for the same idea in the context of crowdfunding (Greenberg et al. 2019). As we shall explain, this feature allows us to examine our modeling choices regarding (a) applicant quality (i.e., do men and women differ in the extent to which they alter project attributes following rejection for the same core idea?); and (b) screening effects from reapplication (i.e., do demand-side screeners evaluate reapplying male entrepreneurs differently than they evaluate reapplying female entrepreneurs?).
 
-### Dependent Variable
+#### Dependent Variable
 
 The dependent variable for our analysis, Money Grab, is a binary indicator for whether the creator of a failed first project subsequently pursued a money grab. Among the 62,853 creators with failed first attempts, 1,050 (1.7%) of them launched a second crowdfunding campaign whose goal was set at or below the amount raised in the first campaign. Since our sample of crowdfunding projects was limited to those launched by the end of November 2014, we also checked for whether our results are robust to excluding projects launched near the end of the sample’s time frame. We find that the results are not affected by the exclusion of such projects.
 
-### Independent Variables
+#### Independent Variables
 
 Our primary independent variable is a binary indicator, Female Creator, that is set to 1 if the project creator is female or to 0 if the creator is male. The project creator’s gender was predicted via genderize.io, an online tool used in prior research that generates a gender prediction based on the focal individual’s first name (Greenberg & Mollick 2017; Greenberg et al. 2019). Of the 62,853 creators with failed first attempts, 16,236 (25.83%) are female.
 
 In addition to the project creator’s gender, we followed GKM and controlled for several additional attributes associated with the failed first crowdfunding attempt. These attributes included the performance of the first attempt relative to the project goal (First Performance, calculated as [funds raised − goal]/goal); an indicator for whether the first attempt was canceled before the fundraising deadline (Canceled Project); the number of words used to describe the project (Project Words); the existence of a “pitch” video (Video); indicators for whether the project was a “top update” (Updates) or a “top comment” (Comments) campaign (i.e., total updates/comments on the project webpage was in the 90th percentile or above); an indicator for whether, in the project’s category, women constituted the majority of creators (Majority Female Category); an indicator for whether the focal project category was associated with the launch of tangible product businesses (Tangible Business Category); and fixed effects for the month and year associated with the project’s launch.
 
-### Estimation Method: Matched Sample Using Coarsened Exact Matching (CEM)
+#### Estimation Method: Matched Sample Using Coarsened Exact Matching (CEM)
 
 Before modeling the relationship between creator gender and the likelihood of launching a money grab attempt, we must account for potential bias arising from systematic differences in project attributes between men and women (Heckman 1979). To reduce this bias, we implemented the coarsened exact matching (CEM) nonparametric matching approach (Blackwell et al. 2009; Iacus et al. 2011). This approach consists of “coarsening” a set of observed covariates, performing exact matching on the coarsened data, “pruning” observations so that each stratum has at least one treatment and one control unit, and then running estimations using the original (but pruned) uncoarsened data (Aggarwal & Hsu 2013). Recent work has highlighted the benefits of CEM over propensity score matching (PSM), another commonly used matching technique. According to Iacus et al. (2011), CEM “generates matching solutions that are better balanced and estimates of the causal quantity of interest that have lower root mean square error than methods under the older existing class, such as those based on propensity scores, Mahalanobis distance, nearest neighbors, and optimal matching.” As a result, more recent studies that rely on matched samples (e.g., Kuppuswamy & Younkin 2019) tend to employ CEM rather than PSM. In our case, CEM produced samples of first projects by men and women that are relatively more comparable – especially with regard to the project variables selected for coarsening and subsequent exact matching. We therefore selected project variables that differ significantly, ex ante, between male- and female-led projects.
 
@@ -324,7 +352,7 @@ We followed the GKM approach to matching men- and women-led projects on First Pe
 
 Our CEM-derived matched sample consisted of 62,354 projects: 16,175 from female creators and 46,179 from male creators. (To test for robustness, we also generated a matched sample of male and female projects using propensity score matching (PSM). Our analysis of the resulting sample yielded results that were strongly similar to those estimated using the CEM matched sample.) We assessed whether the matched sample consisted of a more comparable set of projects (than did the original sample) by estimating a linear probability models (with Female Creator as the outcome) using both the full sample and the matched sample along with their corresponding observation weights, which were used for all analyses involving CEM samples (Models [1] and [2] in Table A.2). Although we used a linear probability model to be consistent with the estimation procedures of GKM, all our analyses are robust to the use of binary outcome (e.g., probit) estimators. As expected, we find significant variation in the distribution of our independent variables across gender; in particular, most covariates correlate significantly with Female Creator in Model [1]. Yet these significant correlations are not observed Model [2] (i.e., when the sample is restricted to the matched sample), which indicates that male and female projects are indeed more comparable in the matched sample.
 
-### Money Grab Crowdfunding Estimation Results
+#### Money Grab Crowdfunding Estimation Results
 
 Using the matched sample of men-led and women-led crowdfunding projects, we model Money Grab as a function of Female Creator and other first-project characteristics. To remain consistent with GKM, we used a linear probability model as our main estimator for our binary outcome.(Several hypotheses in Greenberg et al. (2019) concern the moderating effects of gender in the context of crowdfunding. Given the active scholarly debate regarding the use and interpretation of interaction terms in nonlinear models (see e.g. Ai and Norton 2003; Greene 2010), GKM circumvent the issue by relying primarily on linear probability models in their analyses. However, these authors document that their results are robust to using a probit estimator in place of ordinary least squares.) Model [2] of Table A.2 reports the outcomes of this analysis; Model [1] presents the results of a linear probability model for the full sample of failed projects. From the matched-sample analysis in Model [2] we find that the coefficient for Female Creator is both negative and significant at the 1% level. In Model [3], we replaced our two control variables associated with the project’s category (viz., Tangible Business Category and Majority Female Category) with fixed effects for the 15 main project categories on Kickstarter; we find that the coefficient for Female Creator is still negative and significant at the 1% level. The Model [3] estimates suggest that the probability of launching a money grab is 0.018 for male creators versus 0.014 for female creators – a difference of 22%. In Model [4] we used a probit estimator to model Female Creator; once again, our results are consistent with the estimated probabilities equivalent to those from Model [3]. To increase the likelihood that we are examining repeated attempts of the same idea, as a final robustness test we further constrained our definition of money grabs. More specifically, we focused on post-failure money grab attempts that are in the same project category as the first attempt. The idea here is that, if the two attempts are in the same category, then the latter’s core idea is more likely to match the former’s. Models [5] and [6] give the results when this more stringent definition of a money grab is used, and they differ little from those derived using the other models in Table A.2. Thus, there is robust evidence that, after an initial failure, women are less likely than men to launch a money grab second attempt.
 
@@ -333,11 +361,11 @@ As mentioned previously, the first goal of our investigation into money grab att
 In Model [1] of Table A.3 we used a linear, ordinary least squares (OLS) estimator to model Female Creator as a function of first-project attributes; here the sample was limited to the 739 creators from the matched sample just described. We similarly modeled Female Creator as a function of money grab project attributes from the same set of creators in Model [2] (the covariates First Performance and Canceled Project were not included in this model because they represent outcomes related to first attempts). As expected, Model [1] yields little evidence of significant gendered-based differences (at the 5% level) in failed first-project attributes. Turning to Model [2], we again observe a lack of significant differences in project attributes across genders: no significant correlations re-emerge in the sample of money grab projects following failure. Thus, there are no gender differences evident in the behavior of creators following a failed first attempt and preceding a money grab. This conclusion holds even when we define money grab attempts more strictly – that is, as those in the same category as the first attempt (Models [3] and [4]).
 
 
-## Screening interactions
+## (3) Screening interactions
 
 [top](#contents)
 
-### Finding: After examining an empirical context where differential screening behavior by reapplication status can be observed, we find no such screening differences.
+### Finding: After examining an empirical context where differential screening behavior by reapplication status can be observed (i.e., crowdfunding), we find no such screening differences.
 
 The second objective of our money grab analysis is to examine screening effects from reapplication. In particular, we ask whether demand-side screeners evaluate reapplying male entrepreneurs differently than reapplying female entrepreneurs. We answer this question by investigating whether there exist gender differences in the success rate of money grab attempts launched by men and women who persisted after being rejected. Models [1] and [2] of Table A.4 report the results of linear models of funding success for money grab attempts (those launched by the 739 creators from our CEM matched sample). Here we likewise find no evidence that the creator’s gender has a significant effect on the success of money grab attempts. In an unreported analysis, we also investigated whether creator gender moderates the effect of any other predictors of money grab success; we find no significant indication of such moderating effects. Overall, then, we did not uncover any evidence that potential funders respond differently – that is, as a function of the applicant’s gender – to creators who launch money grab attempts. These analyses informed our modeling choices, among which are excluding the factors of applicant quality and screening effects from reapplication.
 
