@@ -307,14 +307,62 @@ ini0Exit <- c(AM=0, AW=0, RM=0, RW=0, SM=0, SW=0) # all stocks zero
 #   provided initial conditions; 
 #   designated numer of rounds; and
 # returns the final women's share of all selected men and women.
-selModel <- function(rounds,pParam,gParam,bParam,rParam){
+selModel <- function(rounds,pParam,rParam,bParam,gParam){
   parmsOpen <- c(p=pParam,r=rParam,b=bParam,g=gParam) # specified model parameters
-  outOpen <- ode(y = ini0Exit, times = seq(0,rounds,0.01), # initial conditions, times, 
+  outOpen <- ode(y = ini0Exit, times = seq(0,rounds,0.1), # initial conditions, times, 
                  func = model0Exit, parms = parmsOpen)     # model, and parameters
   # return the final women's share among all selected men and women
   return(outOpen[dim(outOpen)[1],"SW"]/
             (outOpen[dim(outOpen)[1],"SW"]+outOpen[dim(outOpen)[1],"SM"]))
 }
+
+# function compEq compares women's share at equilibrium
+# among the applicant pool (the model in the paper) and
+# the stock of selected applicants (a variant) 
+# using randomly sampled points from the parameter space.
+# The difference between the 2 calculated equilibria are returned.
+
+compEq <- function(maxTime){
+  # pick random values for model parameters within finite ranges
+  pRand <- runif(1,min=0.01,max=0.49) # women's share of first-time applicants
+  rRand <- runif(1,min=0.01,max=0.99) # rejection rate
+  bRand <- runif(1,min=0.01,max=0.99) # rate of reapplication by rejected women
+  gRand <- runif(1,min=1,max=10)      # gender difference in reapplication rates (odds ratio)
+  eqPool <- wShareEq(pRand,rRand,bRand,gRand)  # equilibrium - women's share of applicant pool
+  eqSel <- selModel(rounds=maxTime,pRand,rRand,bRand,gRand)
+return(c(pParam=pRand,rParam=rRand,bParam=bRand,gParam=gRand, # return parameter values
+         eqPool=eqPool,  # women's share of applicant pool
+         eqSel=eqSel)) # women's share of selected applicants
+}
+
+# compEq2.5cMT500 <- replicate(250,compEq(500))
+# compEq2.5cMT1k <- replicate(250,compEq(1000))
+# compEq2.5cMT10k <- replicate(250,compEq(10000))
+# compEq2.5cMT100k <- replicate(250,compEq(100000)) # this takes a long time
+
+# compEq.lst <- list(compEq2.5cMT500,compEq2.5cMT1k,compEq2.5cMT10k,compEq2.5cMT100k)
+load("compEq.lst.RData")
+compEq.mat <- do.call(rbind,lapply(compEq.lst,function(l){summary(l[6,]-l[5,])}))
+
+par(mar=c(5.1,6.1,1.1,1.1))
+plot(x=c(500,1000,10000,100000),
+     y=compEq.mat[,6],type="l",col="blue",
+     xlab="Model Time",
+     ylab="Difference between Women's share of selected\n
+     and calculated women's share of applicant pool at equilibrium")
+lines(x=c(500,1000,10000,100000),
+      y=compEq.mat[,5],col="green")
+lines(x=c(500,1000,10000,100000),
+      y=compEq.mat[,3],col="black")
+lines(x=c(500,1000,10000,100000),
+      y=compEq.mat[,2],col="violet")
+lines(x=c(500,1000,10000,100000),
+      y=compEq.mat[,1],col="red")
+legend(x=50000,
+       y=compEq.mat[1,6]*2/3,
+       col=c("blue","green","black","violet","red"),
+       legend=c("maximum","3rd quartile","median","1st quartile","minimum"))
+
 ```
 
 ## (2) Applicant quality interactions
@@ -375,11 +423,113 @@ Demand-side screeners might evaluate reapplying male candidates differently than
 
 [top](#contents)
 
+Here, we provide the code that generates all of the model plots used in the paper.
+
+```{r}
+# Setup for plots
+require(plotly)
+pRange <- (10+10*(0:4))/100 # 0.1, 0.2, 0.3, 0.4, 0.5
+rRange <- (10+20*(0:4))/100 # 0.1, 0.3, 0.5, 0.7, 0.9
+bRange <- seq(0.01,0.99,0.01) # [0.01..0.99]
+gRange <- seq(1,2,0.01) # [1, 1.01, 1.02, ..., 1.98, 1.99, 2]
+
+zBG.df <- expand.grid(gRange,bRange)
+zBG.df$z <- wShareEq(0.25,0.8,b=zBG.df$Var2,g=zBG.df$Var1) # p, r, & z values
+            # do not matter here, as they are re-calculated below.
+            # the purpose is to create a grid of appropriate dimensions
+            # with the correct b, g values and placeholders for the others.
+data3dBG <- xyz.coords(zBG.df)
+
+getPctFPanelBG <- function(p,r){
+  zmat <- t(matrix(wShareEq(p, # new p value fed to wShareEq function
+                             r,  # new r value fed to wShareEq function
+                             b=data3dBG$y, # bs taken from data3dBG
+                             g=data3dBG$x),# gs taken from data3dBG
+                   nrow=length(gRange),
+                   ncol=length(bRange)))
+  zmat_nas <- t(matrix(as.numeric(data3dBG$x<1),
+                       nrow=length(gRange)
+                       ,ncol=length(bRange)))
+  zmat[which(zmat_nas==1)]<- NA
+  fig <- plot_ly(
+    x=gRange,
+    y=bRange,
+    z=zmat,
+    type="contour",
+    colorscale=cbind(seq(0, 1, by=0.01), rainbow(101)),
+    autocontour=F,
+    contours=list(start=0,end=0.5,size=0.01,showlabels=T),
+    line=list(smoothing=0),
+    showscale=F
+  )
+  fig <- fig %>% layout(
+    xaxis=list(title="g: Odds Ratio of men's higher reapplication rate"),
+    yaxis=list(title="b: Women's reapplication rate")
+  )
+  return(fig)
+}
+
+getORPanelBG <- function(p,r){
+  zmat <- t(matrix(apply(as.data.frame(data3dBG[1:2]),
+                         MAR=1,
+                         FUN=function(paramRow){
+                           sbe(p=p,
+                                  r=r,
+                                  b=paramRow[2],
+                                  g=paramRow[1])[1]
+                         }),
+                   nrow=length(gRange),
+                   ncol=length(bRange)))
+  zmat_nas <- t(matrix(as.numeric(data3dBG$x<1),
+                       nrow=length(gRange),
+                       ncol=length(bRange)))
+  zmat[which(zmat_nas==1)]<- NA
+  fig <- plot_ly(
+    x=gRange,
+    y=bRange,
+    z=zmat,
+    type="contour",
+    colorscale=cbind(seq(0, 1, by=0.01), rainbow(101)),
+    autocontour=F,
+    contours=list(start=1,end=3,size=0.1,showlabels=T),
+    line=list(smoothing=0),
+    showscale=F
+  )
+  fig <- fig %>% layout(
+    xaxis=list(title="g: Odds Ratio of men's higher reapplication rate"),
+    yaxis=list(title="b: Women's reappication rate")
+  )
+  return(fig)
+}
+
+paramsPR <- expand.grid(pRange,rRange)
+panelsPctFBG <- lapply(
+  lapply(1:(dim(paramsPR)[1]),
+         function(ps){
+           c(paramsPR[ps,1],paramsPR[ps,2])
+         }),
+  function(pr){
+    getPctFPanelBG(pr[1],pr[2])
+  })
+
+panelsORBG <- lapply(
+  lapply(1:(dim(paramsPR)[1]),
+         function(ps){
+           c(paramsPR[ps,1],paramsPR[ps,2])
+         }),
+  function(pr){
+    getORPanelBG(pr[1],pr[2])
+  })
+
+```
+
 ## Figure 2
 
 
 ```{r }
-# put code here
+# Plotting 1 panel of women's share of applicant pool at equilibrium
+panPctFBG3.7 <- getPctFPanelBG(0.3,0.7) # p=0.3, r=0.7
+panPctFBG3.7
 ```
 
 
@@ -387,28 +537,58 @@ Demand-side screeners might evaluate reapplying male candidates differently than
 
 
 ```{r }
-# put code here
+# Plotting 5 x 5 panels of women's share of applicant pool at equilibrium
+gridFigPctFBG <- subplot(panelsPctFBG[1:25],nrows=5)
+gridFigPctFBG
 ```
 
 ## Figure 4
 
 
 ```{r }
-# put code here
+# Plotting Right panel - Sex bias equivalence  - i.e., odds ratio
+# favoring men in selection that yield equivalent equilibrium outcomes
+panORBG3.7 <- getORPanelBG(0.3,0.7) # p=0.3, r=0.7
+panORBG3.7
 ```
 
 ## Figure 5
 
 
 ```{r }
-# put code here
+# Plotting 5 x 5 panels of sex bias equivalence - i.e., odds ratio
+# favoring men in selection that yield equivalent equilibrium outcomes
+gridFigORBG <- subplot(panelsORBG[1:25],nrows=5)
+gridFigORBG
 ```
 
 ## Figure 6
 
 
 ```{r }
-# put code here
+# read in data
+require(haven)
+patent <- read_dta("proportion_female_vs_acceptance.dta")
+patent$reject <- 1-patent$accepted
+
+# standardize the variables - rejection rate
+patent$rejectStd <- (patent$reject-mean(patent$reject,na.rm=T))/
+  sd(patent$reject,na.rm=T)
+
+# standardize the variables - change in women's share from initial applicants
+# to patent awards
+patent$diffStd <- (patent$diff_accept_all-mean(patent$diff_accept_all,na.rm=T))/
+  sd(patent$diff_accept_all,na.rm=T)
+
+par(mar=c(4.1,5.1,1,1))
+plot(x=patent$rejectStd,
+     y=patent$diffStd,
+     type="p",xlim=c(-2.5,2.5),ylim=c(-2.5,2.5),
+     xlab="Standardized Within-Patent-Class Rejection Rate",
+     ylab="Standardized Within-Class Decline in \n
+     Women's Share From Application to Acceptance")
+abline(lm(diffStd~rejectStd,data=patent),col="green")
+
 ```
 
 
