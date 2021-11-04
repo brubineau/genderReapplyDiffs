@@ -3,7 +3,9 @@ title: "Reject and Resubmit Appendix"
 author: "Fernandez-Mateo, Rubineau, Kuppuswamy"
 output:
   word_document: default
+  pdf_document: default
   html_document: default
+always_allow_html: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -132,21 +134,25 @@ compareSols <- function(){
   tRand <- runif(1,min=10,max=1000)   # time 
   numSol <- appModel(tRand,pRand,rRand,bRand,gRand) # get the outcome - women's share of applicant pool - via the numeric solution
   frmSol <- wShareT(tRand,pRand,rRand,bRand,gRand)  # get the same outcome from the formal analytic solution
-  return(c(time=tRand,diff=as.numeric(numSol - frmSol))) # return the difference between the 2 solutions
+  return(c(time=tRand,
+           diff=as.numeric(numSol - frmSol),
+           numsol=numSol,
+           frmSol=frmSol)) # return the difference between the 2 solutions
 }
 
 set.seed(100) # to reproduce shared results, use the same random seed
               # to generate new results, set a new seed or omit the prior line
-# diff1k <- replicate(1000,compareSols()) # Note - this may require close to an hour to complete
-# mean(diff1k[2,],na.rm=T) #  4.29 * 10^-6
-# max(diff1k[2,],na.rm=T)  #  1.48 * 10^-3
-# min(diff1k[2,],na.rm=T)  # -3.09 * 10^-15
+diff1k <- replicate(1000,compareSols()) # Note - this may require close to an hour to complete
+mean(diff1k[2,which(diff1k[4,]!=0)],na.rm=T) #  2.04 * 10^-6
+max(diff1k[2,which(diff1k[4,]!=0)],na.rm=T)  #  6.67 * 10^-4
+min(diff1k[2,which(diff1k[4,]!=0)],na.rm=T)  # -3.75 * 10^-15
 
-# plot(density(diff1k[2,],na.rm=T)) # note almost all results are indistinguishable from zero
+plot(density(diff1k[2,which(diff1k[4,]!=0)],na.rm=T)) # note almost all results are indistinguishable from zero
 
-# plot(diff1k[1,],diff1k[2,],       # plot difference as a function of model time
-#      xlab="model time value (t)", # note any differences come early in model time
-#      ylab="Numeric - Analytic Result",type="p")  
+plot(x=diff1k[1,which(diff1k[4,]!=0)],
+   y=diff1k[2,which(diff1k[4,]!=0)],       # plot difference as a function of model time
+    xlab="model time value (t)", # note any differences come early in model time
+    ylab="Numeric - Analytic Result",type="p")  
 ```
 
 ## Time to equilibrium
