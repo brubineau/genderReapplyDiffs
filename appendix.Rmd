@@ -148,7 +148,9 @@ mean(diff1k[2,which(diff1k[4,]!=0)],na.rm=T) #  2.04 * 10^-6
 max(diff1k[2,which(diff1k[4,]!=0)],na.rm=T)  #  6.67 * 10^-4
 min(diff1k[2,which(diff1k[4,]!=0)],na.rm=T)  # -3.75 * 10^-15
 
-plot(density(diff1k[2,which(diff1k[4,]!=0)],na.rm=T)) # note almost all results are indistinguishable from zero
+plot(density(diff1k[2,which(diff1k[4,]!=0)],na.rm=T),
+     main="Difference between numeric and analytical solutions\n
+     for randomly-selected points in parameter space") # note almost all results are indistinguishable from zero
 
 plot(x=diff1k[1,which(diff1k[4,]!=0)],
    y=diff1k[2,which(diff1k[4,]!=0)],       # plot difference as a function of model time
@@ -232,7 +234,7 @@ sbe <- function(p,r,b,g){
 }
 ```
 
-# Calculating the confidence intervals for gender differences in reapplication
+# 2. Calculating the confidence intervals for gender differences in reapplication
 
 [top](#contents)
 
