@@ -130,14 +130,14 @@ dev.off()
 
 prop1Sbe <- function(p=runif(1,min=0.01,max=0.49),
                     r=runif(1,min=0.8,max=0.99),
-                    b=runif(1,min=0.54,max=0.88),
+                    b=runif(1,min=0.40,max=0.99),
                     g=runif(1,min=1.3,max=1.5)){
   sbe1 <- sbe(p,r,b,g)[1]
   return(c(sub=as.numeric(sbe1>=1.2),
            sbe=sbe1))
 }
 
-mean(replicate(100000,prop1Sbe()))
+rowMeans(replicate(100000,prop1Sbe()))
 
 prop1EffectsB <- function(iters=1000){
   paramRange <- as.numeric(seq(0.01,0.99,0.02))
@@ -213,7 +213,7 @@ par(mar=c(4.1,5.1,4.1,0.5),mfrow=c(4,2))
 plot(x=pEvalP1$pRange,
      y=pEvalP1$meanOR,
      ylim=c(1,1.4),type="l",
-     main="Effects of p parameter\nWhen r>0.8, 0.54<b<0.88, and g>1.3",
+     main="Effects of p parameter\nWhen r>0.8, 0.40<b<1, and g>1.3",
      xlab="p parameter value",
      ylab="Mean ORm - sex bias equivalent\nodds ratio favoring men in selection")
 abline(v=cases$p,lt=3)
@@ -221,7 +221,7 @@ text(x=cases$p-0.02,y=1.2,labels=cases$caseID,srt=90)
 plot(x=pEvalP1$pRange,
      y=pEvalP1$pctSub,
      ylim=c(0,1), type="l",
-     main="Effects of p parameter\nWhen r>0.8, 0.54<b<0.88, and g>1.3",
+     main="Effects of p parameter\nWhen r>0.8, 0.40<b<1, and g>1.3",
      xlab="p parameter value",
      ylab="Portion of sampled parameter space\nwith substantive segregating effects")
 abline(v=cases$p,lt=3)
@@ -230,7 +230,7 @@ text(x=cases$p-0.025,y=0.5,labels=cases$caseID,srt=90)
 plot(x=rEvalP1$rRange,
      y=rEvalP1$meanOR,
      ylim=c(1,1.4),type="l",
-     main="Effects of r parameter\nWhen 0.54<b<0.88 and g>1.3",
+     main="Effects of r parameter\nWhen 0.40<b<1 and g>1.3",
      xlab="r parameter value",
      ylab="Mean ORm - sex bias equivalent\nodds ratio favoring men in selection")
 abline(v=cases$r,lt=3)
@@ -238,7 +238,7 @@ text(x=cases$r-0.02,y=1.2,labels=cases$caseID,srt=90)
 plot(x=rEvalP1$rRange,
      y=rEvalP1$pctSub,
      ylim=c(0,1),type="l",
-     main="Effects of r parameter\nWhen 0.54<b<0.88 and g>1.3",
+     main="Effects of r parameter\nWhen 0.40<b<1 and g>1.3",
      xlab="r parameter value",
      ylab="Portion of sampled parameter space\nwith substantive segregating effects")
 abline(v=cases$r,lt=3)
@@ -260,11 +260,13 @@ plot(x=bEvalP1$bRange,
      ylab="Portion of sampled parameter space\nwith substantive segregating effects")
 abline(v=cases$b,lt=3)
 text(x=cases$b-0.025,y=0.5,labels=cases$caseID,srt=90)
+abline(h=0.34,lt=2,lwd=0.5,col="gray")
+abline(v=c(0.54,0.88),lt=2,lwd=0.5,col="gray")
 
 plot(x=gEvalP1$gRange,
      y=gEvalP1$meanOR,
      ylim=c(1,1.4),type="l",
-     main="Effects of g parameter\nWhen r>0.8 and 0.54<b<0.88",
+     main="Effects of g parameter\nWhen r>0.8 and 0.40<b<1",
      xlab="g parameter value",
      ylab="Mean ORm - sex bias equivalent\nodds ratio favoring men in selection")
 abline(v=cases$g,lt=3)
@@ -272,7 +274,7 @@ text(x=cases$g-0.01,y=1.2,labels=cases$caseID,srt=90)
 plot(x=gEvalP1$gRange,
      y=gEvalP1$pctSub,
      ylim=c(0,1),type="l",
-     main="Effects of g parameter\nWhen r>0.8 and 0.54<b<0.88",
+     main="Effects of g parameter\nWhen r>0.8 and 0.40<b<1",
      xlab="g parameter value",
      ylab="Portion of sampled parameter space\nwith substantive segregating effects")
 abline(v=cases$g,lt=3)

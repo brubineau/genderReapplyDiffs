@@ -21,20 +21,28 @@ load("diff1k20211104.RData")
    + [Numeric Solution](#numeric-solution)
    + [Analytic Solution](#analytic-solution)
    + [Illustration of solution equivalence](#illustration-of-solution-equivalence)
+     - [A1. Numeric and Analytic Solution Equivalence - Distribution of Differences](#a1-numeric-and-analytic-solution-equivalence-distribution-of-differences)
+     - [A2. Numeric and Analytic Solution Equivalence - Differences by Model Time](#a2-numeric-and-analytic-solution-equivalence-differences-by-model-time) 
    + [Time to equilibrium](#time-to-equilibrium)
+     - [A3. Time to Equilibrium - Model Time 0 to 10,000](#a3-time-to-equilibrium-model-time-0-to-10000)
+     - [A4. Time to Equilibrium - Model Time 0 to 1,000](#a4-time-to-equilibrium-model-time-0-to-1000)
    + [Sex Bias Equivalence](#sex-bias-equivalence)
 2. [Calculating the confidence intervals for gender differences in reapplication](#calculating-the-confidence-intervals-for-gender-differences-in-reapplication)
-3. Consideration of model variations
+3. Analysis for Proposition 1 Parameter Values
+     - [A5. Effects of Individual Parameters in Real World Subset of Parameter Space](#a5-effects-of-individual-parameters-in-real-world-subset-of-parameter-space)
+     - [A6. Effects of Individual Parameters When r>0.80, 0.40<b<0.99, g>1.3](#a6-effects-of-individual-parameters-when-r-0-80-0-40-b-0-99-g-1-3)
+4. Consideration of model variations
    + [Collecting selected applicants](#modeling-stocks-of-selected-applicants)
+     - [A7. Convergence of Equilibria - Model Differences by Model Time](#a7-convergence-of-equilibria-model-differences-by-model-time)
    + [Applicant quality interactions](#applicant-quality-interactions)
    + [Screening interactions](#screening-interactions)
-4. Code for plots
+5. Code for plots
    + [Figure 2](#figure-2)
    + [Figure 3](#figure-3)
    + [Figure 4](#figure-4)
    + [Figure 5](#figure-5)
    + [Figure 6](#figure-6)
-5. References
+6. References
 
 # 1. Model Code
 
@@ -147,10 +155,15 @@ set.seed(100) # to reproduce shared results, use the same random seed
 mean(diff1k[2,which(diff1k[4,]!=0)],na.rm=T) #  2.04 * 10^-6
 max(diff1k[2,which(diff1k[4,]!=0)],na.rm=T)  #  6.67 * 10^-4
 min(diff1k[2,which(diff1k[4,]!=0)],na.rm=T)  # -3.75 * 10^-15
-
+```
+### A1. Numeric and Analytic Solution Equivalence - Distribution of Differences
+```{r}
 plot(density(diff1k[2,which(diff1k[4,]!=0)],na.rm=T),
      main="Difference between numeric and analytical solutions\n
      for randomly-selected points in parameter space") # note almost all results are indistinguishable from zero
+```
+### A2. Numeric and Analytic Solution Equivalence - Differences by Model Time
+```{r}
 
 plot(x=diff1k[1,which(diff1k[4,]!=0)],
    y=diff1k[2,which(diff1k[4,]!=0)],       # plot difference as a function of model time
@@ -188,6 +201,9 @@ return(c(rParam=rRand,bParam=bRand,gParam=gRand,pParam=pRand, # return parameter
 # Running time2Eq 10,000 times and using maxTime = 10,000, 
 # it is clear the model reaches equilibrium before t=1000
 time2Eq1kMax10k <- replicate(10000,time2Eq(10000))
+```
+### A3. Time to Equilibrium - Model Time 0 to 10,000
+```{r}
 plot(time2Eq1kMax10k[5,which(time2Eq1kMax10k[7,]!=0)],
      time2Eq1kMax10k[6,which(time2Eq1kMax10k[7,]!=0)]-time2Eq1kMax10k[7,which(time2Eq1kMax10k[7,]!=0)],
      xlab="Model Time",
@@ -196,6 +212,9 @@ plot(time2Eq1kMax10k[5,which(time2Eq1kMax10k[7,]!=0)],
 # Running time2Eq 10,000 times and using maxTime = 1,000, 
 # it is clear the model reaches equilibrium before t=500
 time2Eq1kMax1k <- replicate(10000,time2Eq(1000))
+```
+### A4. Time to Equilibrium - Model Time 0 to 1,000
+```{r}
 plot(time2Eq1kMax1k[5,which(time2Eq1kMax1k[7,]!=0)],
      time2Eq1kMax1k[6,which(time2Eq1kMax1k[7,]!=0)]-time2Eq1kMax1k[7,which(time2Eq1kMax1k[7,]!=0)],
      xlab="Model Time",
@@ -233,8 +252,9 @@ sbe <- function(p,r,b,g){
             accW=round((q-(q*r))/p,4)))
 }
 ```
-
-# 2. Calculating the confidence intervals for gender differences in reapplication
+------
+# 2. 
+# Calculating the confidence intervals for gender differences in reapplication
 
 [top](#contents)
 
@@ -275,7 +295,293 @@ cases$gub <- cases$g + (unlist(lapply(getGs,quantile,probs=0.975))-unlist(lapply
 t(cases)
 ```
 
-# 3. Consideration of model variations
+-----
+# 3. Analysis for Proposition 1 Parameter Values
+
+Our model provides another way to evaluate the relative contributions of our model parameters to the potential segregating effects of gender differences in reapplication. We can define a subset of the parameter space as the empirically supported parameter space. This subset of parameter space is bounded by values consistent with our observations from the cases. We can sample points in that parameter space at random and calculate the segregating effect of gender differences in reapplication when the parameter values are defined by that sampled point. The segregating effect is defined in terms of the ORM sex bias equivalent odds ratio favoring men in selection. When the ORM value is 1.2 or above, we determine the segregating effects at the parameter values defined by that sampled point to be substantial. By sampling a large number of points in the parameter space, we can determine an average segregating effect across that space along with a probability that a random point yields substantial segregation. 
+
+If we follow this procedure for the parameter space defined by the following ranges of parameter values: $p \epsilon {0.01..0.49}$, $r \epsilon {0.01..0.99}$, $g \epsilon {1.01..1.5}$, $b \epsilon {0.01..0.99}$, then the average $OR_M$ is 1.06, and the probability that a point in the parameter space yields substantial segregation is around 0.017. This result - generated by sampling 100,000 points at random in the defined subset of parameter space - is consistent with the idea that substantial segregating effects from gender differences in reapplication are limited to parts of parameter space characterized by high rejection rates, values of _g_ of 1.3 or greater, and large but not extreme values of _b_. 
+
+This same sampling approach can provide insights into the role of each model parameter on the potential segregating effects of gender differences in reapplication. When we focus on a particular parameter, we can fix that parameter to a certain value, and sample the rest of the parameter space holding that one parameter constant. By doing this repeatedly across a range of values for that parameter, we can map both an average segregating effect and the probability of a substantial segregating effect when the focal parameter takes on a specific value. 
+
+We do this for the defined ranges of the four model parameters (_p_, _r_, _b_, and _g_) and plot the results in Figure A5. The panels of Figure A5 on the left column plot the average segregating effect of each parameter when sampling 10,000 random points from parameter space at each point along the horizontal axis for each parameter. The panels of Figure A5 on the right column plot the portion of sampled points in parameter space for each value of the corresponding parameter that yield substantial segregation. 
+
+In Figure A5, the plots for parameter _p_ - women's share of first-time applicants - both show a noisy horizontal line, indicating that variation in the women's share of first-time applicants does not influence the segregating effects of gender differences in reapplication. The plots for parameter _r_ - the rejection rate - shows a positive trendline with an increasing slope for the segregating effects, and a sharp increase in the portion yielding substantial segregation for values of _r_ above 0.80. The plots for parameter _b_ - women's reapplication rate - shows an inverted u-shaped curve for the average segregating effect, and a small bubble of the portion yielding substantial segregation for values of _b_ between 0.4 and 1. Finally, the plots for parameter _g_ - the odds ratio of men's higher reapplication rate - shows a linear increase in the average segregating effects and a sharp increase in the portion of substantial effects when _g_ goes above 1.3. 
+
+In Figure A5, the portion of sampled points in parameter space yielding substantial segregation remains quite low. That portion is 0.017 for the defined subset of parameter space overall and doesn't rise above 0.25 in any one graph. But these features can be combined. In the next analysis, we examine the effects of these parameters in the range of values identified as potentially substantial in Figure A5, that is, when the rejection rate _r_ is 0.8 or above, when women's reapplication rate _b_ is between 0.4 and 0.99, and when the gender difference in reapplication rate is 1.3 or higher.
+
+```{r}
+randSbe <- function(p=runif(1,min=0.01,max=0.49),
+                    r=runif(1,min=0.01,max=0.99),
+                    b=runif(1,min=0.01,max=0.99),
+                    g=runif(1,min=1.01,max=1.5)){
+  sbe1 <- sbe(p,r,b,g)[1]
+  return(c(sub=as.numeric(sbe1>=1.2),
+           sbe=sbe1))
+}
+
+paramEffectsP <- function(iters=1000){
+  paramRange <- as.numeric(seq(0.01,0.99,0.02))
+  pctSub <- sapply(paramRange,function(param){
+    apply(replicate(iters,randSbe(p=param)),
+          MAR=1,FUN=mean,na.rm=T)})
+  return(data.frame(pRange=paramRange,
+                    pctSub=pctSub[1,],
+                    meanOR=pctSub[2,])) # return the percent the sampled point in parameter space
+}
+pEval <- paramEffectsP(10000)
+
+paramEffectsR <- function(iters=1000){
+  paramRange <- as.numeric(seq(0.01,0.99,0.02))
+  pctSub <- sapply(paramRange,function(param){
+    apply(replicate(iters,randSbe(r=param)),
+          MAR=1,FUN=mean,na.rm=T)})
+  return(data.frame(rRange=paramRange,
+                    pctSub=pctSub[1,],
+                    meanOR=pctSub[2,])) # return the percent the sampled point in parameter space
+}
+rEval <- paramEffectsR(10000)
+
+paramEffectsB <- function(iters=1000){
+  paramRange <- as.numeric(seq(0.01,0.99,0.02))
+  pctSub <- sapply(paramRange,function(param){
+    apply(replicate(iters,randSbe(b=param)),
+          MAR=1,FUN=mean,na.rm=T)})
+  return(data.frame(bRange=paramRange,
+                    pctSub=pctSub[1,],
+                    meanOR=pctSub[2,])) # return the percent the sampled point in parameter space
+}
+bEval <- paramEffectsB(10000)
+
+paramEffectsG <- function(iters=1000){
+  paramRange <- as.numeric(seq(1.01,1.49,0.02))
+  pctSub <- sapply(paramRange,function(param){
+    apply(replicate(iters,randSbe(g=param)),
+          MAR=1,FUN=mean,na.rm=T)})
+  return(data.frame(gRange=paramRange,
+                    pctSub=pctSub[1,],
+                    meanOR=pctSub[2,])) # return the percent the sampled point in parameter space
+}
+gEval <- paramEffectsG(10000)
+```
+
+
+### A5. Effects of Individual Parameters in Real World Subset of Parameter Space
+Effects of model parameters when sampling 10,000 random points in the parameter space for each x-axis value of the parameter in the figure. The observed parameter values from the three cases are given in each panel. The left column of graphs plot parameter effects in terms of the average sex bias equivalent odds ratio favoring men in selection ($OR_M$). The right column of graphs plot parameter effects in terms of the portion of sampled parameter space yielding substantive ($OR_M \geq 1.2$) segregating effects. 
+
+```{r}
+par(mar=c(4.1,5.1,4.1,0.5),mfrow=c(4,2))
+
+plot(x=pEval$pRange,
+     y=pEval$meanOR,
+     ylim=c(1,1.25),type="l",
+     main="Effects of p parameter:\nWomen's share of first-time applicants",
+     xlab="p parameter value",
+     ylab="Mean ORm - sex bias equivalent\nodds ratio favoring men in selection")
+abline(v=cases$p,lt=3)
+text(x=cases$p-0.02,y=1.15,labels=cases$caseID,srt=90)
+plot(x=pEval$pRange,
+     y=pEval$pctSub,
+     ylim=c(0,0.3), type="l",
+     main="Effects of p parameter:\nWomen's share of first-time applicants",
+     xlab="p parameter value",
+     ylab="Portion of sampled parameter space\nwith substantive segregating effects")
+abline(v=cases$p,lt=3)
+text(x=cases$p-0.025,y=0.18,labels=cases$caseID,srt=90)
+
+plot(x=rEval$rRange,
+     y=rEval$meanOR,
+     ylim=c(1,1.25),type="l",
+     main="Effects of r parameter: Rejection rate",
+     xlab="r parameter value",
+     ylab="Mean ORm - sex bias equivalent\nodds ratio favoring men in selection")
+abline(v=cases$r,lt=3)
+text(x=cases$r-0.02,y=1.15,labels=cases$caseID,srt=90)
+plot(x=rEval$rRange,
+     y=rEval$pctSub,
+     ylim=c(0,0.3),type="l",
+     main="Effects of r parameter: Rejection rate",
+     xlab="r parameter value",
+     ylab="Portion of sampled parameter space\nwith substantive segregating effects")
+abline(v=cases$r,lt=3)
+text(x=cases$r-0.025,y=0.18,labels=cases$caseID,srt=90)
+
+plot(x=bEval$bRange,
+     y=bEval$meanOR,
+     ylim=c(1,1.25),type="l",
+     main="Effects of b parameter:\nWomen's repplication rate",
+     xlab="b parameter value",
+     ylab="Mean ORm - sex bias equivalent\nodds ratio favoring men in selection")
+abline(v=cases$b,lt=3)
+text(x=cases$b-0.02,y=1.15,labels=cases$caseID,srt=90)
+plot(x=bEval$bRange,
+     y=bEval$pctSub,
+     ylim=c(0,0.3),type="l",
+     main="Effects of b parameter:\nWomen's repplication rate",
+     xlab="b parameter value",
+     ylab="Portion of sampled parameter space\nwith substantive segregating effects")
+abline(v=cases$b,lt=3)
+text(x=cases$b-0.025,y=0.18,labels=cases$caseID,srt=90)
+
+plot(x=gEval$gRange,
+     y=gEval$meanOR,
+     ylim=c(1,1.25),type="l",
+     main="Effects of g parameter: Odds ratio of\nmen's greater reapplication rate",
+     xlab="g parameter value",
+     ylab="Mean ORm - sex bias equivalent\nodds ratio favoring men in selection")
+abline(v=cases$g,lt=3)
+text(x=cases$g-0.01,y=1.15,labels=cases$caseID,srt=90)
+plot(x=gEval$gRange,
+     y=gEval$pctSub,
+     ylim=c(0,0.3),type="l",
+     main="Effects of g parameter: Odds ratio of\nmen's greater reapplication rate",
+     xlab="g parameter value",
+     ylab="Portion of sampled parameter space\nwith substantive segregating effects")
+abline(v=cases$g,lt=3)
+text(x=cases$g-0.01,y=0.18,labels=cases$caseID,srt=90)
+```
+
+--------
+
+For the subset of parameter space that yields the possibility of substantial segregation ($r > 0.80$, $0.40 < b < 1$, and $g > 1.3$), we again investigate the effects of each model parameter. The results are shown in Figure A6. We use these results to identify the parameter space where we can expect substantial segregating effects from gender differences in reapplication. As with Figure A5, we see no role for women's share of first-time applicants parameter _p_. That first row of graphs in Figure A6 shows that the average $OR_M$ value in this further reduced subset of parameter space is 1.18, and on average 35% of this parameter space yields substantial segregating effects. 
+In Figure A6 as with Figure A5, substantial segregation begins with the rejection rate parameter _r_ > 0.80 and when the gender differences in reapplication parameter _g_ > 1.3. We examine the range of parameter _b_ giving a range of parameter space where the expectation for substantial segregating effects is 0.50 or higher. We find when 
+
+These combined parameter values define the conditions when substantial segregation is more likely than not to arise from gender differences in reapplication. Of our three cases, only executive search meets these requirements. This analysis provides the basis for the first of our two propositions. 
+
+```{r}
+prop1Sbe <- function(p=runif(1,min=0.01,max=0.49),
+                    r=runif(1,min=0.8,max=0.99),
+                    b=runif(1,min=0.40,max=0.99),
+                    g=runif(1,min=1.3,max=1.5)){
+  sbe1 <- sbe(p,r,b,g)[1]
+  return(c(sub=as.numeric(sbe1>=1.2),
+           sbe=sbe1))
+}
+rowMeans(replicate(100000,prop1Sbe()))
+rowMeans(replicate(1000000,prop1Sbe(b=runif(1,min=0.54,max=0.88))))
+
+prop1EffectsP <- function(iters=1000){
+  paramRange <- as.numeric(seq(0.01,0.49,0.01))
+  pctSub <- sapply(paramRange,function(param){
+    rowMeans(replicate(iters,prop1Sbe(p=param)),na.rm=T)})
+  return(data.frame(pRange=paramRange,
+                    pctSub=pctSub[1,],
+                    meanOR=pctSub[2,])) # return the percent the sampled point in parameter space
+}
+pEvalP1 <- prop1EffectsP(10000)
+
+prop1EffectsR <- function(iters=1000){
+  paramRange <- as.numeric(seq(0.01,0.99,0.02))
+  pctSub <- sapply(paramRange,function(param){
+    rowMeans(replicate(iters,prop1Sbe(r=param)),na.rm=T)})
+  return(data.frame(rRange=paramRange,
+                    pctSub=pctSub[1,],
+                    meanOR=pctSub[2,])) # return the percent the sampled point in parameter space
+}
+rEvalP1 <- prop1EffectsR(10000)
+
+prop1EffectsB <- function(iters=1000){
+  paramRange <- as.numeric(seq(0.01,0.99,0.02))
+  pctSub <- sapply(paramRange,function(param){
+    rowMeans(replicate(iters,prop1Sbe(b=param)),na.rm=T)})
+  return(data.frame(bRange=paramRange,
+                    pctSub=pctSub[1,],
+                    meanOR=pctSub[2,])) # return the percent the sampled point in parameter space
+}
+bEvalP1 <- prop1EffectsB(10000)
+
+prop1EffectsG <- function(iters=1000){
+  paramRange <- as.numeric(seq(1.01,1.49,0.01))
+  pctSub <- sapply(paramRange,function(param){
+    rowMeans(replicate(iters,prop1Sbe(g=param)),na.rm=T)})
+  return(data.frame(gRange=paramRange,
+                    pctSub=pctSub[1,],
+                    meanOR=pctSub[2,])) # return the percent the sampled point in parameter space
+}
+gEvalP1 <- prop1EffectsG(10000)
+```
+
+
+### A7. Effects of Individual Parameters When r>0.80, 0.40<b<0.99, g>1.3
+Effects of model parameters when sampling 10,000 random points in the parameter space for each x-axis value of the parameter in the figure. The observed parameter values from the three cases are given in each panel. The left column of graphs plot parameter effects in terms of the average sex bias equivalent odds ratio favoring men in selection ($OR_M$). The right column of graphs plot parameter effects in terms of the portion of sampled parameter space yielding substantive ($OR_M \geq 1.2$) segregating effects. 
+
+```{r}
+par(mar=c(4.1,5.1,4.1,0.5),mfrow=c(4,2))
+
+plot(x=pEvalP1$pRange,
+     y=pEvalP1$meanOR,
+     ylim=c(1,1.4),type="l",
+     main="Effects of p parameter\nWhen r>0.8, 0.40<b<0.99, and g>1.3",
+     xlab="p parameter value",
+     ylab="Mean ORm - sex bias equivalent\nodds ratio favoring men in selection")
+abline(v=cases$p,lt=3)
+text(x=cases$p-0.02,y=1.2,labels=cases$caseID,srt=90)
+plot(x=pEvalP1$pRange,
+     y=pEvalP1$pctSub,
+     ylim=c(0,1), type="l",
+     main="Effects of p parameter\nWhen r>0.8, 0.40<b<0.99, and g>1.3",
+     xlab="p parameter value",
+     ylab="Portion of sampled parameter space\nwith substantive segregating effects")
+abline(v=cases$p,lt=3)
+text(x=cases$p-0.025,y=0.5,labels=cases$caseID,srt=90)
+
+plot(x=rEvalP1$rRange,
+     y=rEvalP1$meanOR,
+     ylim=c(1,1.4),type="l",
+     main="Effects of r parameter\nWhen 0.40<b<0.99 and g>1.3",
+     xlab="r parameter value",
+     ylab="Mean ORm - sex bias equivalent\nodds ratio favoring men in selection")
+abline(v=cases$r,lt=3)
+text(x=cases$r-0.02,y=1.2,labels=cases$caseID,srt=90)
+plot(x=rEvalP1$rRange,
+     y=rEvalP1$pctSub,
+     ylim=c(0,1),type="l",
+     main="Effects of r parameter\nWhen 0.40<b<0.99 and g>1.3",
+     xlab="r parameter value",
+     ylab="Portion of sampled parameter space\nwith substantive segregating effects")
+abline(v=cases$r,lt=3)
+text(x=cases$r-0.025,y=0.5,labels=cases$caseID,srt=90)
+
+plot(x=bEvalP1$bRange,
+     y=bEvalP1$meanOR,
+     ylim=c(1,1.4),type="l",
+     main="Effects of b parameter\nWhen r>0.8 and g>1.3",
+     xlab="b parameter value",
+     ylab="Mean ORm - sex bias equivalent\nodds ratio favoring men in selection")
+abline(v=cases$b,lt=3)
+text(x=cases$b-0.02,y=1.2,labels=cases$caseID,srt=90)
+plot(x=bEvalP1$bRange,
+     y=bEvalP1$pctSub,
+     ylim=c(0,1),type="l",
+     main="Effects of b parameter\nWhen r>0.8 and g>1.3",
+     xlab="b parameter value",
+     ylab="Portion of sampled parameter space\nwith substantive segregating effects")
+abline(v=cases$b,lt=3)
+text(x=cases$b-0.025,y=0.5,labels=cases$caseID,srt=90)
+
+plot(x=gEvalP1$gRange,
+     y=gEvalP1$meanOR,
+     ylim=c(1,1.4),type="l",
+     main="Effects of g parameter\nWhen r>0.8 and 0.40<b<0.99",
+     xlab="g parameter value",
+     ylab="Mean ORm - sex bias equivalent\nodds ratio favoring men in selection")
+abline(v=cases$g,lt=3)
+text(x=cases$g-0.01,y=1.2,labels=cases$caseID,srt=90)
+plot(x=gEvalP1$gRange,
+     y=gEvalP1$pctSub,
+     ylim=c(0,1),type="l",
+     main="Effects of g parameter\nWhen r>0.8 and 0.40<b<0.99",
+     xlab="g parameter value",
+     ylab="Portion of sampled parameter space\nwith substantive segregating effects")
+abline(v=cases$g,lt=3)
+text(x=cases$g-0.01,y=0.5,labels=cases$caseID,srt=90)
+
+```
+
+
+
+-----
+# 4. Consideration of model variations
 
 [top](#contents)
 
