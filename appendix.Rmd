@@ -2,9 +2,9 @@
 title: "Reject and Resubmit: A formal analysis of gender differences in reapplication and their contribution to women’s presence in talent pipelines"
 author: ""
 output:
-  word_document: default
-  pdf_document: default
   html_document: default
+  pdf_document: default
+  word_document: default
 always_allow_html: yes
 ---
 
@@ -21,19 +21,21 @@ load("diff1k20211104.RData")
    + [Numeric Solution](#numeric-solution)
    + [Analytic Solution](#analytic-solution)
    + [Illustration of solution equivalence](#illustration-of-solution-equivalence)
-     - [A1. Numeric and Analytic Solution Equivalence - Distribution of Differences](#a1-numeric-and-analytic-solution-equivalence-distribution-of-differences)
-     - [A2. Numeric and Analytic Solution Equivalence - Differences by Model Time](#a2-numeric-and-analytic-solution-equivalence-differences-by-model-time) 
+     - [Figure A1. Numeric and Analytic Solution Equivalence - Distribution of Differences](#a1)
+     - [Figure A2. Numeric and Analytic Solution Equivalence - Differences by Model Time](#a2)
    + [Time to equilibrium](#time-to-equilibrium)
-     - [A3. Time to Equilibrium - Model Time 0 to 10,000](#a3-time-to-equilibrium-model-time-0-to-10000)
-     - [A4. Time to Equilibrium - Model Time 0 to 1,000](#a4-time-to-equilibrium-model-time-0-to-1000)
+     - [Figure A3. Time to Equilibrium - Model Time 0 to 10,000](#a3)
+     - [Figure A4. Time to Equilibrium - Model Time 0 to 1,000](#a4)
    + [Sex Bias Equivalence](#sex-bias-equivalence)
 2. [Calculating the confidence intervals for gender differences in reapplication](#calculating-the-confidence-intervals-for-gender-differences-in-reapplication)
 3. Analysis for Proposition 1 Parameter Values
-     - [A5. Effects of Individual Parameters in Real World Subset of Parameter Space](#a5-effects-of-individual-parameters-in-real-world-subset-of-parameter-space)
-     - [A6. Effects of Individual Parameters When r>0.80, 0.40<b<0.99, g>1.3](#a6-effects-of-individual-parameters-when-r-0-80-0-40-b-0-99-g-1-3)
+   + [Parameters in Real World Subset of Parameter Space](#prop1a)
+     - [Figure A5. Effects of Individual Parameters in Real World Subset of Parameter Space](#a5)
+   + [Parameters When r>0.80, 0.40<b<0.99, and g>1.3](#prop1a)
+     - [Figure A6. Effects of Individual Parameters When r>0.80, 0.40<b<0.99, g>1.3](#a6)
 4. Consideration of model variations
    + [Collecting selected applicants](#modeling-stocks-of-selected-applicants)
-     - [A7. Convergence of Equilibria - Model Differences by Model Time](#a7-convergence-of-equilibria-model-differences-by-model-time)
+     - [Figure A7. Convergence of Equilibria - Model Differences by Model Time](#a7)
    + [Applicant quality interactions](#applicant-quality-interactions)
    + [Screening interactions](#screening-interactions)
 5. Code for plots
@@ -54,7 +56,7 @@ Our model analysis was implemented in R. We provide all code here.
 
 [top](#contents)
 
-```{r }
+```{r tidy=T}
 model <- function (t, state, parms) {
   with(as.list(c(state, parms)), {
     #  Formulae for Men (M) and Women (W) as in the Paper
@@ -76,7 +78,7 @@ ini <- c(AM=0, AW=0, RM=0, RW=0)
 
 We use the R package deSolve (Soetaert, Petzoldt, & Setzer 2010) to solve our model numerically.
 
-```{r }
+```{r tidy=T}
 require(deSolve)
 # appModel Function numericaly solves the continuous model
 # using the:
@@ -100,8 +102,34 @@ appModel <- function(rounds=500,pParam,rParam,bParam,gParam){
 
 [top](#contents)
 
-We determined the analytic solutions to our model using Sage.
-```{r }
+We determined the analytic solutions to our model using SageMathCell (Grout et al. 2021).
+
+Inputs to SageMathCell giving the provided solutions are provided below. Note that to avoid naming difficulties arising from the stock of rejected applicants being called ‘R’ and one of the model parameters – the rejection rate - also using ‘r,’ for the input below, ‘s’ was used to indicate the rejection rate parameter. SageMathCell inputs to give the solution for women in the applicant pool over time:
+>     var('t, p, s, b')
+>     assume(t>=0)
+>     assume(s>0,s<1)
+>     assume(b>0,b<1)
+>     assume(p>0,p<.5)
+>     a = function('a')(t)
+>     r = function('r')(t)
+>     de1 = diff(a,t) - (-a+p+(r*b)) == 0
+>     de2 = diff(r,t) - (s*a-r) == 0
+>     desolve_system([de1,de2],[a,r],ics=[0,p,0],ivar=t)
+
+SageMathCell inputs to give the solution for men in the applicant pool over time:
+>     var('t, s, p, g, b')
+>     assume(t>=0)
+>     assume(s > 0, s < 1)
+>     assume(p > 0, p < 0.5)
+>     assume(g > 1)
+>     assume(b > 0, b < 1)
+>     a = function('a')(t)
+>     r = function('r')(t)
+>     de1 = diff(a,t) - (1-a-p+(r*b*g/(1+(b*g)-b)))==0
+>     de2 = diff(r,t) - (s*a-r) == 0
+>     desolve_system([de1,de2],[a,r],ics=[0,(1-p),0],ivar=t)
+
+```{r tidy=T}
 # women in applicant pool at time t
 wT <- function(t,p,r,b){
   return((b*p*r*cosh(sqrt(b*r)*t)/(b*r - 1) + b*p*r*sinh(sqrt(b*r)*t)/((b*r - 1)*sqrt(b*r)))*exp(-t) - p/(b*r - 1))  
@@ -124,16 +152,14 @@ wShareT <- function(t,p,r,b,g){
 
 [top](#contents)
 
-Numeric and analytic solutions to differential equation models give results that can be made identical to arbitrary levels of accuracy. The average result for randomly-sampled points in the model's parameter space (including time) using the default numeric solution settings are outcomes that match to six decimal places.
-
-```{r }
+Numeric and analytic solutions to differential equation models give results that can be made identical to arbitrary levels of accuracy. The average result for randomly-sampled points in the model’s parameter space (including time) using the default numeric solution settings are outcomes that match to six decimal places. These very small differences between solutions are largest when model time is small. As model time increases, differences between these solutions approach zero.
+```{r tidy=T}
 # function compareSols takes no arguments
 # it samples a random point in the model's parameter space (including time)
 # and finds the women's share of the applicant pool 
 # at that point in the parameter space using both 
 # the numeric and analytical solutions from above.
 # The function returns the difference (numerical - analytical) and the time step.
-
 compareSols <- function(){
   # pick random values for model parameters within finite ranges
   pRand <- runif(1,min=0.01,max=0.49) # women's share of first-time applicants
@@ -151,20 +177,24 @@ compareSols <- function(){
 
 set.seed(100) # to reproduce shared results, use the same random seed
               # to generate new results, set a new seed or omit the prior line
-# diff1k <- replicate(1000,compareSols()) # Note - this may require close to an hour to complete
+# diff1k <- replicate(1000,compareSols()) # Note - may require an hour to complete
 mean(diff1k[2,which(diff1k[4,]!=0)],na.rm=T) #  2.04 * 10^-6
 max(diff1k[2,which(diff1k[4,]!=0)],na.rm=T)  #  6.67 * 10^-4
 min(diff1k[2,which(diff1k[4,]!=0)],na.rm=T)  # -3.75 * 10^-15
 ```
-### A1. Numeric and Analytic Solution Equivalence - Distribution of Differences
-```{r}
+
+### Figure A1. Numeric and Analytic Solution Equivalence - Distribution of Differences {#a1}
+
+```{r tidy=T}
 plot(density(diff1k[2,which(diff1k[4,]!=0)],na.rm=T),
      main="Difference between numeric and analytical solutions\n
-     for randomly-selected points in parameter space") # note almost all results are indistinguishable from zero
+     for randomly-selected points in parameter space") # note almost all results 
+     # are indistinguishable from zero
 ```
-### A2. Numeric and Analytic Solution Equivalence - Differences by Model Time
-```{r}
 
+### Figure A2. Numeric and Analytic Solution Equivalence - Differences by Model Time {#a2}
+
+```{r tidy=T}
 plot(x=diff1k[1,which(diff1k[4,]!=0)],
    y=diff1k[2,which(diff1k[4,]!=0)],       # plot difference as a function of model time
     xlab="model time value (t)", # note any differences come early in model time
@@ -177,7 +207,7 @@ plot(x=diff1k[1,which(diff1k[4,]!=0)],
 
 We find that t=500 is sufficient to achieve equilibrium throughout the model's parameter space. We determine equilibrium has been reached when there is no change in results to any of 16 decimal places between time t and time t+100.
 
-```{r }
+```{r tidy=T}
 # function time2Eq takes a specified maximum time "maxTime"
 # and randomly samples parameter space and time t.
 # At a sampled point, the analytical solution is calculated
@@ -189,10 +219,13 @@ time2Eq <- function(maxTime){
   pRand <- runif(1,min=0.01,max=0.49) # women's share of first-time applicants
   rRand <- runif(1,min=0.01,max=0.99) # rejection rate
   bRand <- runif(1,min=0.01,max=0.99) # rate of reapplication by rejected women
-  gRand <- runif(1,min=1,max=10)      # gender difference in reapplication rates (odds ratio)
+  gRand <- runif(1,min=1,max=10)      # gender difference in reapplication rates 
+                                      # (odds ratio)
   tRand <- runif(1,min=10,max=maxTime)   # time 
-  frmSol <- wShareT(tRand,pRand,rRand,bRand,gRand)  # get the same outcome from the formal analytic solution
-return(c(rParam=rRand,bParam=bRand,gParam=gRand,pParam=pRand, # return parameter values
+  frmSol <- wShareT(tRand,pRand,rRand,bRand,gRand)  # get the same outcome
+                                      # from the formal analytic solution
+return(c(rParam=rRand,bParam=bRand,gParam=gRand,pParam=pRand, 
+                      # return parameter values
          time=tRand,  # including time t
          out=frmSol,  # and the calculated women's share at time t
          out100=wShareT(tRand+100,pRand,rRand,bRand,gRand))) # and at time t+100.
@@ -202,30 +235,38 @@ return(c(rParam=rRand,bParam=bRand,gParam=gRand,pParam=pRand, # return parameter
 # it is clear the model reaches equilibrium before t=1000
 time2Eq1kMax10k <- replicate(10000,time2Eq(10000))
 ```
-### A3. Time to Equilibrium - Model Time 0 to 10,000
-```{r}
+
+### Figure A3. Time to Equilibrium - Model Time 0 to 10,000 {#a3}
+
+```{r tidy=T}
 plot(time2Eq1kMax10k[5,which(time2Eq1kMax10k[7,]!=0)],
      time2Eq1kMax10k[6,which(time2Eq1kMax10k[7,]!=0)]-time2Eq1kMax10k[7,which(time2Eq1kMax10k[7,]!=0)],
      xlab="Model Time",
      ylab="t and t+100 Difference")
-
 # Running time2Eq 10,000 times and using maxTime = 1,000, 
 # it is clear the model reaches equilibrium before t=500
 time2Eq1kMax1k <- replicate(10000,time2Eq(1000))
 ```
-### A4. Time to Equilibrium - Model Time 0 to 1,000
-```{r}
+
+### Figure A4. Time to Equilibrium - Model Time 0 to 1,000 {#a4}
+
+```{r tidy=T}
 plot(time2Eq1kMax1k[5,which(time2Eq1kMax1k[7,]!=0)],
      time2Eq1kMax1k[6,which(time2Eq1kMax1k[7,]!=0)]-time2Eq1kMax1k[7,which(time2Eq1kMax1k[7,]!=0)],
      xlab="Model Time",
      ylab="t and t+100 Difference")
 ```
+
+-----
+
 Based on these results, we use t=500 for calculating women's share at equilibrium.
-```{r}
+
+```{r tidy=T}
 wShareEq <- function(p,r,b,g){
    return(wShareT(t=500,p=p,r=r,b=b,g=g))
 }
 ```
+
 ## Sex Bias Equivalence
 
 [top](#contents)
@@ -233,7 +274,7 @@ wShareEq <- function(p,r,b,g){
 We calculate the odds ratio favoring men in selection that yields the same compositional changes as those from gender differences in reapplication (for a particular set of model parameters) as the sex bias equivalence (of that particular set of model parameters). The code for these calculations are below.
 
 
-```{r }
+```{r tidy=T}
 # Sex Bias Equivalence (SBE) function
 # Gives the Odds Ratio favoring men in selection that yields the same
 # women's share among selected as given by
@@ -252,65 +293,95 @@ sbe <- function(p,r,b,g){
             accW=round((q-(q*r))/p,4)))
 }
 ```
-------
-# 2. 
-# Calculating the confidence intervals for gender differences in reapplication
+
+# 2. Calculating the confidence intervals for gender differences in reapplication
 
 [top](#contents)
 
-We employ numerical simulations to determine a 95% confidence interval for the gender difference in reapplication parameter (g) in each of our three cases. We treat the probability of men's reapplication and probability of women's reapplication as a binomial random variable with the case-provided point estimates. We then run simulations of similarly-sized populations using those probabilities to generate a distribution of simulated gender differences in reapplication. We use the values that are +/- 1.96 standard deviations of this simulated distribution as the 95% CI for these values.
+We employ numerical simulations to determine a 95% confidence interval for the gender difference in reapplication parameter ( _g_ ) in each of our three cases. We treat the probability of men's reapplication and probability of women's reapplication as a binomial random variable with the case-provided point estimates. We then run simulations of similarly-sized populations using those probabilities to generate a distribution of simulated gender differences in reapplication. We use the values that are +/- 1.96 standard deviations of this simulated distribution as the 95% CI for these values.
 
-```{r }
-cases <- data.frame(caseID=c(   "ExecSearch",    "CrowdFund",    "Patenting"),
+```{r tidy=T}
+cases <- data.frame(caseID=c("ExecSearch",
+                             "CrowdFund",
+                             "Patenting"),
                     # MODEL PARAMETERS - g is calculated below
-                    p=c(                0.16,           0.29,          0.088), # women's share of first-time applicants
-                    r=c(                0.96,           0.64,           0.86), # rejection rate
+                    p=c(0.16,   # women's share
+                        0.29,   # of first-time
+                        0.088), # applicants
+                    r=c(0.96,   # rejection rate
+                        0.64,
+                        0.86),
                     # OTHER CASE DATA
-                    obs.m=c(           21952, round(98131*(1-0.29),0), round(3370800*(1-0.088),0)), # count of men in each case
-                    obs.w=c(            1603, round(98131*0.29,0),    round(3370800*0.088,0)), # count of women in each case
-                    pr.reapply.m=c( 1-0.2924,        0.13672,         0.5555), # estimates of men's reapplication rates
-                    pr.reapply.w=c( 1-0.3558,        0.10854,         0.5305)) # estimates of women's reapplication rates
-
+                    obs.m=c(21952, # count of men in each case
+                            round(98131*(1-0.29),0),
+                            round(3370800*(1-0.088),0)),
+                    obs.w=c(1603, # count of women in each case
+                            round(98131*0.29,0),
+                            round(3370800*0.088,0)), 
+                    pr.reapply.m=c(1-0.2924, #estimates of men's
+                                   0.13672,  #reapplication
+                                   0.5555),  #rates
+                    pr.reapply.w=c( 1-0.3558,#estimates of
+                                    0.10854, #women's re-
+                                    0.5305)) #application rates
 cases$b <- cases$pr.reapply.w
 cases$g <- cases$pr.reapply.m*(1-cases$pr.reapply.w)/(cases$pr.reapply.w*(1-cases$pr.reapply.m))
-
 getGs <- lapply(as.list(1:3),function(c){
-  replicate(100000, # generates 100k instances of g (odds ratio of men's higher rate of reapplication relative to women)
-            {m <- (rbinom(n=1,  # rbinom returns number of successes (reapplications) from the same number of men at men's case-identified probability of reapplying
+  replicate(100000, # generates 100k instances of 
+                    # g (odds ratio of men's higher rate of 
+                    # reapplication relative to women)
+            {m <- (rbinom(n=1,  # rbinom returns number of 
+                                # successes (reapplications) 
+                                # from the same number of men
+                                # at men's case-identified 
+                                # probability of reapplying
                     size=cases$obs.m[c],
-                    prob=cases$pr.reapply.m[c])/cases$obs.m[c]) # dividing by number of men yields proportion of men who reapplied
-            w <- (rbinom(n=1, # rbinom returns number of successes (reapplications) from the same number of women at women's case-identified probability of reapplying
+                    prob=cases$pr.reapply.m[c])/cases$obs.m[c])
+            # dividing by number of men yields
+            # proportion of men who reapplied
+            w <- (rbinom(n=1, # rbinom returns number of 
+                         # successes (reapplications) from the 
+                         # same number of women at women's 
+                         # case-identified probability of 
+                         # reapplying
                       size=cases$obs.w[c],
                       prob=cases$pr.reapply.w[c])/cases$obs.w[c])
-            return(m*(1-w)/(w*(1-m))) # odds ratio of men's higher rate of reapplication relative to women
+            return(m*(1-w)/(w*(1-m))) # odds ratio of 
+            # men's higher rate of reapplication
             })
 })
-
 # 95% CI taken from the simulated distribution
 # lower-bound for g in the 95% CI
 cases$glb <- cases$g - (unlist(lapply(getGs,quantile,probs=0.975))-unlist(lapply(getGs,quantile,probs=0.025)))/2 # lower bound of 95%CI
 # upper-bound for g in the 95% CI
-cases$gub <- cases$g + (unlist(lapply(getGs,quantile,probs=0.975))-unlist(lapply(getGs,quantile,probs=0.025)))/2 # upper bound of 95%CI
-
+cases$gub <- cases$g + (unlist(lapply(
+  getGs,
+  quantile,
+  probs=0.975))-
+    unlist(lapply(
+      getGs,
+      quantile,
+      probs=0.025)))/2 # upper bound of 95%CI
 t(cases)
 ```
 
------
 # 3. Analysis for Proposition 1 Parameter Values
+
+## Parameters in Real World Subset of Parameter Space {#prop1a}
 
 Our model provides another way to evaluate the relative contributions of our model parameters to the potential segregating effects of gender differences in reapplication. We can define a subset of the parameter space as the empirically supported parameter space. This subset of parameter space is bounded by values consistent with our observations from the cases. We can sample points in that parameter space at random and calculate the segregating effect of gender differences in reapplication when the parameter values are defined by that sampled point. The segregating effect is defined in terms of the ORM sex bias equivalent odds ratio favoring men in selection. When the ORM value is 1.2 or above, we determine the segregating effects at the parameter values defined by that sampled point to be substantial. By sampling a large number of points in the parameter space, we can determine an average segregating effect across that space along with a probability that a random point yields substantial segregation. 
 
-If we follow this procedure for the parameter space defined by the following ranges of parameter values: $p \epsilon {0.01..0.49}$, $r \epsilon {0.01..0.99}$, $g \epsilon {1.01..1.5}$, $b \epsilon {0.01..0.99}$, then the average $OR_M$ is 1.06, and the probability that a point in the parameter space yields substantial segregation is around 0.017. This result - generated by sampling 100,000 points at random in the defined subset of parameter space - is consistent with the idea that substantial segregating effects from gender differences in reapplication are limited to parts of parameter space characterized by high rejection rates, values of _g_ of 1.3 or greater, and large but not extreme values of _b_. 
+If we follow this procedure for the parameter space defined by the following ranges of parameter values: _p_ $\epsilon$ {0.01..0.49}, _r_ $\epsilon$ {0.01..0.99}, _g_ $\epsilon$ {1.01..1.5}, _b_ $\epsilon$ {0.01..0.99}, then the average $OR_M$ is 1.06, and the probability that a point in the parameter space yields substantial segregation is around 0.017. This result - generated by sampling 100,000 points at random in the defined subset of parameter space - is consistent with the idea that substantial segregating effects from gender differences in reapplication are limited to parts of parameter space characterized by high rejection rates, values of _g_ of 1.3 or greater, and large but not extreme values of _b_. 
 
 This same sampling approach can provide insights into the role of each model parameter on the potential segregating effects of gender differences in reapplication. When we focus on a particular parameter, we can fix that parameter to a certain value, and sample the rest of the parameter space holding that one parameter constant. By doing this repeatedly across a range of values for that parameter, we can map both an average segregating effect and the probability of a substantial segregating effect when the focal parameter takes on a specific value. 
 
-We do this for the defined ranges of the four model parameters (_p_, _r_, _b_, and _g_) and plot the results in Figure A5. The panels of Figure A5 on the left column plot the average segregating effect of each parameter when sampling 10,000 random points from parameter space at each point along the horizontal axis for each parameter. The panels of Figure A5 on the right column plot the portion of sampled points in parameter space for each value of the corresponding parameter that yield substantial segregation. 
+We do this for the defined ranges of the four model parameters ( _p_, _r_, _b_, and _g_) and plot the results in Figure A5. The panels of Figure A5 on the left column plot the average segregating effect of each parameter when sampling 10,000 random points from parameter space at each point along the horizontal axis for each parameter. The panels of Figure A5 on the right column plot the portion of sampled points in parameter space for each value of the corresponding parameter that yield substantial segregation. 
 
 In Figure A5, the plots for parameter _p_ - women's share of first-time applicants - both show a noisy horizontal line, indicating that variation in the women's share of first-time applicants does not influence the segregating effects of gender differences in reapplication. The plots for parameter _r_ - the rejection rate - shows a positive trendline with an increasing slope for the segregating effects, and a sharp increase in the portion yielding substantial segregation for values of _r_ above 0.80. The plots for parameter _b_ - women's reapplication rate - shows an inverted u-shaped curve for the average segregating effect, and a small bubble of the portion yielding substantial segregation for values of _b_ between 0.4 and 1. Finally, the plots for parameter _g_ - the odds ratio of men's higher reapplication rate - shows a linear increase in the average segregating effects and a sharp increase in the portion of substantial effects when _g_ goes above 1.3. 
 
-In Figure A5, the portion of sampled points in parameter space yielding substantial segregation remains quite low. That portion is 0.017 for the defined subset of parameter space overall and doesn't rise above 0.25 in any one graph. But these features can be combined. In the next analysis, we examine the effects of these parameters in the range of values identified as potentially substantial in Figure A5, that is, when the rejection rate _r_ is 0.8 or above, when women's reapplication rate _b_ is between 0.4 and 0.99, and when the gender difference in reapplication rate is 1.3 or higher.
+In Figure A5, the portion of sampled points in parameter space yielding substantial segregation remains quite low. That portion is 0.017 for the defined subset of parameter space overall and doesn't rise above 0.25 in any one graph. But these features can be combined. In the next analysis, we examine the effects of these parameters in the range of values identified as potentially substantial in Figure A5, that is, when the rejection rate _r_ is 0.8 or above, when women's reapplication rate _b_ is between 0.4 and 1, and when the gender difference in reapplication rate is 1.3 or higher (up to 1.5).
 
-```{r}
+```{r tidy=T}
 randSbe <- function(p=runif(1,min=0.01,max=0.49),
                     r=runif(1,min=0.01,max=0.99),
                     b=runif(1,min=0.01,max=0.99),
@@ -326,8 +397,8 @@ paramEffectsP <- function(iters=1000){
     apply(replicate(iters,randSbe(p=param)),
           MAR=1,FUN=mean,na.rm=T)})
   return(data.frame(pRange=paramRange,
-                    pctSub=pctSub[1,],
-                    meanOR=pctSub[2,])) # return the percent the sampled point in parameter space
+                    pctSub=pctSub[1,],  # return the percent substantial
+                    meanOR=pctSub[2,])) # return the mean OR_M
 }
 pEval <- paramEffectsP(10000)
 
@@ -337,8 +408,8 @@ paramEffectsR <- function(iters=1000){
     apply(replicate(iters,randSbe(r=param)),
           MAR=1,FUN=mean,na.rm=T)})
   return(data.frame(rRange=paramRange,
-                    pctSub=pctSub[1,],
-                    meanOR=pctSub[2,])) # return the percent the sampled point in parameter space
+                    pctSub=pctSub[1,],  # return the percent substantial
+                    meanOR=pctSub[2,])) # return the mean OR_M
 }
 rEval <- paramEffectsR(10000)
 
@@ -348,8 +419,8 @@ paramEffectsB <- function(iters=1000){
     apply(replicate(iters,randSbe(b=param)),
           MAR=1,FUN=mean,na.rm=T)})
   return(data.frame(bRange=paramRange,
-                    pctSub=pctSub[1,],
-                    meanOR=pctSub[2,])) # return the percent the sampled point in parameter space
+                    pctSub=pctSub[1,],  # return the percent substantial
+                    meanOR=pctSub[2,])) # return the mean OR_M
 }
 bEval <- paramEffectsB(10000)
 
@@ -359,17 +430,18 @@ paramEffectsG <- function(iters=1000){
     apply(replicate(iters,randSbe(g=param)),
           MAR=1,FUN=mean,na.rm=T)})
   return(data.frame(gRange=paramRange,
-                    pctSub=pctSub[1,],
-                    meanOR=pctSub[2,])) # return the percent the sampled point in parameter space
+                    pctSub=pctSub[1,],  # return the percent substantial
+                    meanOR=pctSub[2,])) # return the mean OR_M
 }
 gEval <- paramEffectsG(10000)
 ```
 
 
-### A5. Effects of Individual Parameters in Real World Subset of Parameter Space
+### Figure A5. Effects of Individual Parameters in Real World Subset of Parameter Space {#a5}
+
 Effects of model parameters when sampling 10,000 random points in the parameter space for each x-axis value of the parameter in the figure. The observed parameter values from the three cases are given in each panel. The left column of graphs plot parameter effects in terms of the average sex bias equivalent odds ratio favoring men in selection ($OR_M$). The right column of graphs plot parameter effects in terms of the portion of sampled parameter space yielding substantive ($OR_M \geq 1.2$) segregating effects. 
 
-```{r}
+```{r tidy=T}
 par(mar=c(4.1,5.1,4.1,0.5),mfrow=c(4,2))
 
 plot(x=pEval$pRange,
@@ -441,14 +513,18 @@ abline(v=cases$g,lt=3)
 text(x=cases$g-0.01,y=0.18,labels=cases$caseID,srt=90)
 ```
 
+![Figure A5. Effects of Individual Parameters in Real World Subset of Parameter Space](paramInterp_20211107.PNG)
+
 --------
 
+## Parameters When r>0.80, 0.40<b<0.99, and g>1.3 {#prop1b}
+
 For the subset of parameter space that yields the possibility of substantial segregation ($r > 0.80$, $0.40 < b < 1$, and $g > 1.3$), we again investigate the effects of each model parameter. The results are shown in Figure A6. We use these results to identify the parameter space where we can expect substantial segregating effects from gender differences in reapplication. As with Figure A5, we see no role for women's share of first-time applicants parameter _p_. That first row of graphs in Figure A6 shows that the average $OR_M$ value in this further reduced subset of parameter space is 1.18, and on average 35% of this parameter space yields substantial segregating effects. 
-In Figure A6 as with Figure A5, substantial segregation begins with the rejection rate parameter _r_ > 0.80 and when the gender differences in reapplication parameter _g_ > 1.3. We examine the range of parameter _b_ giving a range of parameter space where the expectation for substantial segregating effects is 0.50 or higher. We find when 
+In Figure A6 as with Figure A5, substantial segregation begins with the rejection rate parameter _r_ > 0.80 and when the gender differences in reapplication parameter _g_ > 1.3. We examine the range of parameter _b_ giving a range of parameter space where the expectation for substantial segregating effects is 0.50 or higher. We find when _b_ is in the range of 0.543 to 0.877 (and _r_ > 0.80 and _g_ > 1.3), the expected value of OR_M within this subset of parameter space is a little above 1.2, and the probability that a randomly-selected point within that subset of parameter space yields substantial segregating effects is almost exactly 0.5.
 
 These combined parameter values define the conditions when substantial segregation is more likely than not to arise from gender differences in reapplication. Of our three cases, only executive search meets these requirements. This analysis provides the basis for the first of our two propositions. 
 
-```{r}
+```{r tidy=T}
 prop1Sbe <- function(p=runif(1,min=0.01,max=0.49),
                     r=runif(1,min=0.8,max=0.99),
                     b=runif(1,min=0.40,max=0.99),
@@ -458,7 +534,7 @@ prop1Sbe <- function(p=runif(1,min=0.01,max=0.49),
            sbe=sbe1))
 }
 rowMeans(replicate(100000,prop1Sbe()))
-rowMeans(replicate(1000000,prop1Sbe(b=runif(1,min=0.54,max=0.88))))
+rowMeans(replicate(1000000,prop1Sbe(b=runif(1,min=0.543,max=0.877))))
 
 prop1EffectsP <- function(iters=1000){
   paramRange <- as.numeric(seq(0.01,0.49,0.01))
@@ -501,11 +577,10 @@ prop1EffectsG <- function(iters=1000){
 gEvalP1 <- prop1EffectsG(10000)
 ```
 
-
-### A7. Effects of Individual Parameters When r>0.80, 0.40<b<0.99, g>1.3
+### Figure A6. Effects of Individual Parameters When r>0.80, 0.40<b<0.99, g>1.3 {#a6}
 Effects of model parameters when sampling 10,000 random points in the parameter space for each x-axis value of the parameter in the figure. The observed parameter values from the three cases are given in each panel. The left column of graphs plot parameter effects in terms of the average sex bias equivalent odds ratio favoring men in selection ($OR_M$). The right column of graphs plot parameter effects in terms of the portion of sampled parameter space yielding substantive ($OR_M \geq 1.2$) segregating effects. 
 
-```{r}
+```{r echo=T, results='hide', tidy=T}
 par(mar=c(4.1,5.1,4.1,0.5),mfrow=c(4,2))
 
 plot(x=pEvalP1$pRange,
@@ -578,9 +653,10 @@ text(x=cases$g-0.01,y=0.5,labels=cases$caseID,srt=90)
 
 ```
 
-
+![Figure A6. Effects of Individual Parameters When r>0.80, 0.40<b<0.99, g>1.3](./paramProp1_20211117.PNG)
 
 -----
+
 # 4. Consideration of model variations
 
 [top](#contents)
@@ -604,7 +680,7 @@ The lower bound is the situation such as patenting and crowdfunding, where selec
 Are the equilibrium compositions from these two versions of the model different for the same location in the model's parameter space? No they are not. It is only the speed with which they reach the equilibrium that differs. Because the equilibria from both forms of the model are identical, we use the simpler version in the paper.
 
 
-```{r }
+```{r tidy=T}
 model0Exit <- function (t, state, parms) {
   with(as.list(c(state, parms)), {
     #  Formulae for Men (M) and Women (W) as in the Paper
@@ -660,7 +736,11 @@ return(c(pParam=pRand,rParam=rRand,bParam=bRand,gParam=gRand, # return parameter
 # compEq.lst <- list(compEq2.5cMT500,compEq2.5cMT1k,compEq2.5cMT10k,compEq2.5cMT100k)
 load("compEq.lst.RData")
 compEq.mat <- do.call(rbind,lapply(compEq.lst,function(l){summary(l[6,]-l[5,])}))
+```
 
+### Figure A7. Convergence of Equilibria - Model Differences by Model Time {#a7} 
+
+```{r tidy=T}
 par(mar=c(5.1,6.1,1.1,1.1))
 plot(x=c(500,1000,10000,100000),
      y=compEq.mat[,6],type="l",col="blue",
@@ -696,6 +776,7 @@ The two other published studies that we used to ground our model (viz., Brands &
 In addition, we use the crowdfunding setting to perform our own analysis of the data as a means of examining our model choices regarding both applicant quality and screening effects from reapplication. We describe in detail how we did so.
 
 ### Crowdfunding Analysis
+
 #### Data and Sample
 
 We drew on a sample of projects posted on Kickstarter (the world’s largest crowdfunding platform) between April 2009 and November 2014. The data were obtained from Kickspy, an online archive of Kickstarter projects. Because our focus was on reactions to rejection, our sample consisted of 62,853 projects that failed to reach their fundraising goal. To ensure that we considered meaningful first attempts to raise seed capital, we restricted our sample to projects that were the first crowdfunding attempt of a project creator and whose fundraising goal was at least $1,000. We also restricted our sample to project creators whose gender could be identified with a high level of confidence (probability of no less than 0.9). As noted by GKM, it is not uncommon for creators who fall short of their goal to launch a second project with a new fundraising goal set at or below what they raised in their first attempt. Such “money grab” projects typically represent attempts to raise money again for the same general idea from the first attempt, tapping the same community that supported the project the first time around. Thus, money grab second attempts represent more definitive cases of reapplication after rejection for the same idea in the context of crowdfunding (Greenberg et al. 2019). As we shall explain, this feature allows us to examine our modeling choices regarding (a) applicant quality (i.e., do men and women differ in the extent to which they alter project attributes following rejection for the same core idea?); and (b) screening effects from reapplication (i.e., do demand-side screeners evaluate reapplying male entrepreneurs differently than they evaluate reapplying female entrepreneurs?).
@@ -743,7 +824,7 @@ Demand-side screeners might evaluate reapplying male candidates differently than
 
 Here, we provide the code that generates all of the model plots used in the paper.
 
-```{r}
+```{r tidy=T}
 # Setup for plots
 require(plotly)
 pRange <- (10+10*(0:4))/100 # 0.1, 0.2, 0.3, 0.4, 0.5
@@ -844,7 +925,7 @@ panelsORBG <- lapply(
 ## Figure 2
 
 
-```{r }
+```{r tidy=T}
 # Plotting 1 panel of women's share of applicant pool at equilibrium
 panPctFBG3.7 <- getPctFPanelBG(0.3,0.7) # p=0.3, r=0.7
 panPctFBG3.7
@@ -854,7 +935,7 @@ panPctFBG3.7
 ## Figure 3
 
 
-```{r }
+```{r tidy=T}
 # Plotting 5 x 5 panels of women's share of applicant pool at equilibrium
 gridFigPctFBG <- subplot(panelsPctFBG[1:25],nrows=5)
 gridFigPctFBG
@@ -863,7 +944,7 @@ gridFigPctFBG
 ## Figure 4
 
 
-```{r }
+```{r tidy=T}
 # Plotting Right panel - Sex bias equivalence  - i.e., odds ratio
 # favoring men in selection that yield equivalent equilibrium outcomes
 panORBG3.7 <- getORPanelBG(0.3,0.7) # p=0.3, r=0.7
@@ -873,7 +954,7 @@ panORBG3.7
 ## Figure 5
 
 
-```{r }
+```{r tidy=T}
 # Plotting 5 x 5 panels of sex bias equivalence - i.e., odds ratio
 # favoring men in selection that yield equivalent equilibrium outcomes
 gridFigORBG <- subplot(panelsORBG[1:25],nrows=5)
@@ -883,7 +964,7 @@ gridFigORBG
 ## Figure 6
 
 
-```{r }
+```{r tidy=T}
 # read in data
 require(haven)
 patent <- read_dta("proportion_female_vs_acceptance.dta")
@@ -914,25 +995,34 @@ abline(lm(diffStd~rejectStd,data=patent),col="green")
 
 [top](#contents)
 
-Aggarwal VA, Hsu DH (2013) Entrepreneurial exits and innovation. Management Science, 60(4):867-887.
+Aggarwal VA, Hsu DH (2013) Entrepreneurial exits and innovation. _Management Science_, 60(4):867-887.
 
-Ai C, Norton EC (2003) Interaction terms in logit and probit models. Economics letters, 80(1), 123-129.
+Ai C, Norton EC (2003) Interaction terms in logit and probit models. _Economics letters_, 80(1), 123-129.
 
-Blackwell M, Iacus S, King G, Porro G (2009) cem: Coarsened exact matching in Stata. The Stata Journal, 9(4), 524-546.
+Blackwell M, Iacus S, King G, Porro G (2009) cem: Coarsened exact matching in Stata. _The Stata Journal_, 9(4), 524-546.
+
+Brands RA, Fernandez-Mateo I (2017) Leaning out: How negative recruitment experiences shape women’s decisions to compete for executive roles. _Administrative Science Quarterly_ 62(3): 405-442.
+
+Correll, S. J. (2001). Gender and the career choice process: The role of biased self-assessments. _American Journal of Sociology_, 106(6), 1691-1730.
 
 Greenberg J, Kuppuswamy V, Mollick ER (2019) Gender, Hubris, and the Interpretation of Signals in Crowdfunding. Working Paper.
 
-Greenberg J, Mollick E (2017) Activist choice homophily and the crowdfunding of female founders. Administrative Science Quarterly 62(2): 341-374.
+Greenberg J, Mollick E (2017) Activist choice homophily and the crowdfunding of female founders. _Administrative Science Quarterly_ 62(2): 341-374.
 
-Greene W (2010) Testing hypotheses about interaction terms in nonlinear models. Economics Letters, 107(2), 291-296.
+Greene W (2010) Testing hypotheses about interaction terms in nonlinear models. _Economics Letters_, 107(2), 291-296.
 
-Heckman JJ (1979) Sample selection bias as a specification error. Econometrica: Journal of the econometric society, 153-161.
+Grout J, Hanson I, Johnson S, Kramer A, Novoseltsev A, Stein W. (2021). SageMathCell. https://sagecell.sagemath.org/.
 
-Iacus, S. M., King, G., & Porro, G. (2011). Multivariate matching methods that are monotonic imbalance bounding. Journal of the American Statistical Association, 106(493), 345-361.
+Heckman JJ (1979) Sample selection bias as a specification error. _Econometrica: Journal of the econometric society_, 153-161.
 
-Kuppuswamy, V., & Younkin, P. (2019). Testing the Theory of Consumer Discrimination as an Explanation for the Lack of Minority Hiring in Hollywood Films. Management Science.
+Iacus, S. M., King, G., & Porro, G. (2011). Multivariate matching methods that are monotonic imbalance bounding. _Journal of the American Statistical Association_, 106(493), 345-361.
 
-SageMath, the Sage Mathematics Software System (Version 9.4),
-   The Sage Developers, Jason Grout, Ira Hansonm, Steven Johnson, Alex Kramer, Andrey Novoseltsev, William Stein. https://www.sagemath.org.
+Jensen KL, Kovács B, Sorenson O (2018) Gender differences in obtaining and maintaining patent rights. _Nature Biotechnology_ 36(4): 307-309.
 
-Soetaert, K., Petzoldt, T., & Setzer, R. W. (2010). Solving Differential Equations in R: Package deSolve. Journal of Statistical Software, 33(9), 1–25. https://doi.org/10.18637/jss.v033.i09
+Kolev J, Fuentes-Medel Y, Murray F (2019) Is blinded review enough? How gendered outcomes arise even under anonymous evaluation (No. w25759). National Bureau of Economic Research.
+
+Kulik, C. T., & Olekalns, M. (2012). Negotiating the gender divide: Lessons from the negotiation and organizational behavior literatures. Journal of Management, 38(4), 1387-1415.
+
+Kuppuswamy, V., & Younkin, P. (2020). Testing the Theory of Consumer Discrimination as an Explanation for the Lack of Minority Hiring in Hollywood Films. _Management Science_, 66(3), 1227-1247.
+
+Soetaert, K., Petzoldt, T., & Setzer, R. W. (2010). Solving Differential Equations in R: Package deSolve. _Journal of Statistical Software_, 33(9), 1–25. https://doi.org/10.18637/jss.v033.i09
