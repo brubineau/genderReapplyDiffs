@@ -2,9 +2,9 @@
 title: "Reject and Resubmit: A formal analysis of gender differences in reapplication and their contribution to women’s presence in talent pipelines"
 author: ""
 output:
-  html_document: default
-  pdf_document: default
   word_document: default
+  pdf_document: default
+  html_document: default
 always_allow_html: yes
 ---
 
@@ -71,6 +71,8 @@ model <- function (t, state, parms) {
 # Initial values for model - all stocks set to zero
 ini <- c(AM=0, AW=0, RM=0, RW=0)
 ```
+
+The units of our model is the number of first-time applicants. In these units, p women are first-time applicants and 1-p men are first-time applicants. Because the main outcome of the model -- women's share of the total applicant pool -- is the same regardless of units, we use units that help keep the model simple and clear.
 
 ## Numeric solution
 
