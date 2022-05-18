@@ -61,6 +61,8 @@ cases <- data.frame(caseID=c(   "ExecSearch",    "CrowdFund",    "Patenting"),
                     pr.reapply.m=c( 1-0.2924,        0.13672,         0.5555), # estimates of reapplication probabilities for men
                     pr.reapply.f=c( 1-0.3558,        0.10854,         0.5305)) # estimates of reapplication probabilities for women
 
+cases$o <- cases$pr.reapply.m*(1-cases$pr.reapply.f)/(cases$pr.reapply.f*(1-cases$pr.reapply.m))
+
 # ----------------------------------------------------
 # 2.2. Add CIs for g from case data
 # standard deviation of binary random variables with probability p is: sqrt(n*p*(1-p))
@@ -69,17 +71,28 @@ cases <- data.frame(caseID=c(   "ExecSearch",    "CrowdFund",    "Patenting"),
 
 getGs <- lapply(as.list(1:3),function(c){
   replicate(100000, # generates 100k instances of g (ratio of proportion of men who reapply to proportion of women who reapply)
-            (rbinom(n=1,  # rbinom returns number of successes (reapplications) from the same number of men at men's case-identified probability of reapplying
+            {m <- (rbinom(n=1,  # rbinom returns number of successes (reapplications) from the same number of men at men's case-identified probability of reapplying
                     size=cases$obs.m[c],
-                    prob=cases$pr.reapply.m[c])/cases$obs.m[c])/ # dividing by number of men yields proportion of men who reapplied
-              (rbinom(n=1, # rbinom returns number of successes (reapplications) from the same number of women at women's case-identified probability of reapplying
+                    prob=cases$pr.reapply.m[c])/cases$obs.m[c]) # dividing by number of men yields proportion of men who reapplied
+            w <- (rbinom(n=1, # rbinom returns number of successes (reapplications) from the same number of women at women's case-identified probability of reapplying
                       size=cases$obs.f[c],
-                      prob=cases$pr.reapply.f[c])/cases$obs.f[c])) # dividing by number of women yields proportion of women who reapplied
+                      prob=cases$pr.reapply.f[c])/cases$obs.f[c])
+            return(m*(1-w)/(w*(1-m))) # dividing by number of women yields proportion of women who reapplied
+            })
 })
 
 # 95% CI taken from the simulated distribution
-cases$glb <- cases$g - (unlist(lapply(getGs,quantile,probs=0.975))-unlist(lapply(getGs,quantile,probs=0.025)))/2 # lower bound of 95%CI
-cases$gub <- cases$g + (unlist(lapply(getGs,quantile,probs=0.975))-unlist(lapply(getGs,quantile,probs=0.025)))/2 # upper bound of 95%CI
+cases$olb <- cases$o - (unlist(lapply(getGs,quantile,probs=0.975))-unlist(lapply(getGs,quantile,probs=0.025)))/2 # lower bound of 95%CI
+cases$oub <- cases$o + (unlist(lapply(getGs,quantile,probs=0.975))-unlist(lapply(getGs,quantile,probs=0.025)))/2 # upper bound of 95%CI
+
+cases$equil <- equilPctFWO(cases$p,cases$r,cases$pr.reapply.f,cases$o)[1:3]
+cases$equil.lb <- equilPctFWO(cases$p,cases$r,cases$pr.reapply.f,cases$olb)[1:3]
+cases$equil.ub <- equilPctFWO(cases$p,cases$r,cases$pr.reapply.f,cases$oub)[1:3]
+
+cases$sbe <- getSBEWO(cases$p,cases$r,cases$pr.reapply.f,cases$o)[1:3]
+cases$sbe.lb <- getSBEWO(cases$p,cases$r,cases$pr.reapply.f,cases$olb)[1:3]
+cases$sbe.ub <- getSBEWO(cases$p,cases$r,cases$pr.reapply.f,cases$oub)[1:3]
+
 
 ############################
 # 3. MAIN MODEL AND VARIANT
@@ -771,13 +784,15 @@ dev.off()
 # 8. Table
 # --------
 
-tab2 <- round(rbind(t(cases[,c("p","r","b","g")]),
-                    g_ci = ((cases$gub-cases$g)+(cases$g-cases$glb))/2,
-                    after20 = cases$sol.exit0,
-                    after20ci = ((rarPctFMinExit(cases$p,cases$r,cases$glb,cases$b,t=20) - cases$sol.exit0)+
-                                   (cases$sol.exit0-rarPctFMinExit(cases$p,cases$r,cases$gub,cases$b,t=20)))/2,
-                    delta_abs = cases$sol.exit0-cases$p,
-                    delta_rel = (cases$sol.exit0-cases$p)/cases$p,
-                    t(cases[,c("selEquil","sbu","accRateMen","accRateWom","sbuOdds")]))[,c(1,3,2)],4)
+tab2 <- round(rbind(t(cases[,c("p","r","pr.reapply.f","o")]),
+                    g_ci = ((cases$oub-cases$o)+(cases$o-cases$olb))/2,
+                    equil = cases$equil,
+                    equilci = (
+                      (rarPctFMinExit(cases$p,cases$r,cases$glb,cases$b,t=20) - cases$sol.exit0)+
+                                   (cases$equil-
+                                      rarPctFMinExit(cases$p,cases$r,cases$gub,cases$b,t=20)))/2,
+                    delta_abs = cases$equil-cases$p,
+                    delta_rel = (cases$equil-cases$p)/cases$p,
+                    t(cases[,c("sbu","accRateMen","accRateWom")]))[,c(1,3,2)],4)
 colnames(tab2) <- cases$caseID[c(1,3,2)]
 tab2
