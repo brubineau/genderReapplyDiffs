@@ -443,90 +443,59 @@ gEval <- paramEffectsG(10000)
 
 ### Figure A5. Effects of Individual Parameters in Real World Subset of Parameter Space {#a5}
 
-Effects of model parameters when sampling 10,000 random points in the parameter space for each x-axis value of the parameter in the figure. The observed parameter values from the three cases are given in each panel. The left column of graphs plot parameter effects in terms of the average sex bias equivalent odds ratio favoring men in selection ($OR_M$). The right column of graphs plot parameter effects in terms of the portion of sampled parameter space yielding substantive ($OR_M \geq 1.2$) segregating effects. 
+Effects of model parameters when sampling 10,000 random points in the parameter space for each x-axis value of the parameter in the figure. The observed parameter values from the three cases are given in each panel. The left column of graphs plot parameter effects in terms of the average sex bias equivalent odds ratio favoring men in selection ($OR_M$). The right column of graphs plot parameter effects in terms of the portion of sampled parameter space yielding substantial ($OR_M \geq 1.2$) segregating effects. 
 
 ```{r tidy=T}
 png(filename = paste0("paramInterp2x2_",gsub("-","",Sys.Date()),".PNG"),width=3840,height=2400,res=360)
 par(mar=c(4.1,6.1,4.1,0.5),mfrow=c(2,2))
 
-# plot(x=pEval$pRange,
-#      y=pEval$meanOR,
-#      ylim=c(1,1.25),type="l",
-#      main="Effects of p parameter:\nWomen's share of first-time applicants",
-#      xlab="p parameter value",
-#      ylab="Mean ORm - sex bias equivalent\nodds ratio favoring men in selection")
-# abline(v=cases$p,lt=3)
-# text(x=cases$p-0.02,y=1.15,labels=cases$caseID,srt=90)
 plot(x=pEval$pRange,
      y=pEval$pctSub,
      ylim=c(0,0.5), type="l",
      main="Effects of p parameter:\nWomen's share of first-time applicants",
      xlab="p parameter value",
-     ylab="with substantive segregating effects",
+     ylab="",
           yaxt="n",cex=1.5,cex.axis=1.5,cex.main=1.5,cex.lab=1.25)
 axis(2, at=((0:5)/10), lab=paste0(((0:5)/10) * 100,"%"), las=TRUE,cex.axis=1,las=0)
+par(adj=1)
+title(ylab="with substantial segregating effects",cex.lab=1.2)
+par(adj=0.5)
 
-# abline(v=cases$p,lt=3)
-# text(x=cases$p-0.025,y=0.18,labels=cases$caseID,srt=90)
-
-# plot(x=rEval$rRange,
-#      y=rEval$meanOR,
-#      ylim=c(1,1.25),type="l",
-#      main="Effects of r parameter: Rejection rate",
-#      xlab="r parameter value",
-#      ylab="Mean ORm - sex bias equivalent\nodds ratio favoring men in selection")
-# abline(v=cases$r,lt=3)
-# text(x=cases$r-0.02,y=1.15,labels=cases$caseID,srt=90)
 plot(x=rEval$rRange,
      y=rEval$pctSub,
      ylim=c(0,0.5),type="l",
      main="Effects of r parameter: Rejection rate",
      xlab="r parameter value",
-     ylab="with substantive segregating effects",
+     ylab="",
           yaxt="n",cex=1.5,cex.axis=1.5,cex.main=1.5,cex.lab=1.25)
 axis(2, at=((0:5)/10), lab=paste0(((0:5)/10) * 100,"%"), las=TRUE,cex.axis=1,las=0)
+par(adj=1)
+title(ylab="with substantial segregating effects",cex.lab=1.2)
+par(adj=0.5)
 
-# abline(v=cases$r,lt=3)
-# text(x=cases$r-0.025,y=0.18,labels=cases$caseID,srt=90)
-
-# plot(x=bEval$bRange,
-#      y=bEval$meanOR,
-#      ylim=c(1,1.25),type="l",
-#      main="Effects of b parameter:\nWomen's repplication rate",
-#      xlab="b parameter value",
-#      ylab="Mean ORm - sex bias equivalent\nodds ratio favoring men in selection")
-# abline(v=cases$b,lt=3)
-# text(x=cases$b-0.02,y=1.15,labels=cases$caseID,srt=90)
 plot(x=bEval$bRange,
      y=bEval$pctSub,
      ylim=c(0,0.5),type="l",
      main="Effects of b parameter:\nWomen's repplication rate",
      xlab="b parameter value",
-     ylab="Portion of sampled parameter space",
+     ylab="",
           yaxt="n",cex=1.5,cex.axis=1.5,cex.main=1.5,cex.lab=1.25)
 axis(2, at=((0:5)/10), lab=paste0(((0:5)/10) * 100,"%"), las=TRUE,cex.axis=1,las=0)
+par(adj=0)
+title(ylab="Portion of sampled parameter space",cex.lab=1.2)
+par(adj=0.5)
 
-# abline(v=cases$b,lt=3)
-# text(x=cases$b-0.025,y=0.18,labels=cases$caseID,srt=90)
-
-# plot(x=gEval$gRange,
-#      y=gEval$meanOR,
-#      ylim=c(1,1.25),type="l",
-#      main="Effects of g parameter: Odds ratio of\nmen's greater reapplication rate",
-#      xlab="g parameter value",
-#      ylab="Mean ORm - sex bias equivalent\nodds ratio favoring men in selection")
-# abline(v=cases$g,lt=3)
-# text(x=cases$g-0.01,y=1.15,labels=cases$caseID,srt=90)
 plot(x=gEval$gRange,
      y=gEval$pctSub,
      ylim=c(0,0.5),type="l",
      main="Effects of g parameter: Odds ratio of\nmen's greater reapplication rate",
      xlab="g parameter value",
-     ylab="Portion of sampled parameter space",
+     ylab="",
           yaxt="n",cex=1.5,cex.axis=1.5,cex.main=1.5,cex.lab=1.25)
 axis(2, at=((0:5)/10), lab=paste0(((0:5)/10) * 100,"%"), las=TRUE,cex.axis=1,las=0)
-# abline(v=cases$g,lt=3)
-# text(x=cases$g-0.01,y=0.18,labels=cases$caseID,srt=90)
+par(adj=0)
+title(ylab="Portion of sampled parameter space",cex.lab=1.2)
+par(adj=0.5)
 dev.off()
 ```
 
@@ -553,7 +522,9 @@ prop1Sbe <- function(p=runif(1,min=0.01,max=0.49),
            sbe=sbe1))
 }
 rowMeans(replicate(100000,prop1Sbe()))
-rowMeans(replicate(1000000,prop1Sbe(b=runif(1,min=0.543,max=0.877))))
+# rowMeans(replicate(100000,prop1Sbe(b=runif(1,min=0.543,max=0.877))))
+rowMeans(replicate(100000,prop1Sbe(r=runif(1,min=0.806,max=0.999))))
+
 
 prop1EffectsP <- function(iters=1000){
   paramRange <- as.numeric(seq(0.01,0.49,0.01))
@@ -566,7 +537,7 @@ prop1EffectsP <- function(iters=1000){
 pEvalP1 <- prop1EffectsP(10000)
 
 prop1EffectsR <- function(iters=1000){
-  paramRange <- as.numeric(seq(0.01,0.99,0.02))
+  paramRange <- as.numeric(seq(0.01,0.99,0.01))
   pctSub <- sapply(paramRange,function(param){
     rowMeans(replicate(iters,prop1Sbe(r=param)),na.rm=T)})
   return(data.frame(rRange=paramRange,
@@ -596,8 +567,8 @@ prop1EffectsG <- function(iters=1000){
 gEvalP1 <- prop1EffectsG(10000)
 ```
 
-### Figure A6. Effects of Individual Parameters When r>0.80, 0.40<b<0.99, g>1.3 {#a6}
-Effects of model parameters when sampling 10,000 random points in the parameter space for each x-axis value of the parameter in the figure. The observed parameter values from the three cases are given in each panel. The left column of graphs plot parameter effects in terms of the average sex bias equivalent odds ratio favoring men in selection ($OR_M$). The right column of graphs plot parameter effects in terms of the portion of sampled parameter space yielding substantive ($OR_M \geq 1.2$) segregating effects. 
+### Figure A6. Effects of Individual Parameters When r>0.2, b>0.2, g>1.3 {#a6}
+Effects of model parameters when sampling 10,000 random points in the parameter space for each x-axis value of the parameter in the figure. The observed parameter values from the three cases are given in each panel. The left column of graphs plot parameter effects in terms of the average sex bias equivalent odds ratio favoring men in selection ($OR_M$). The right column of graphs plot parameter effects in terms of the portion of sampled parameter space yielding substantial ($OR_M \geq 1.2$) segregating effects. 
 
 ```{r echo=T, results='hide', tidy=T}
 par(mar=c(4.1,5.1,4.1,0.5),mfrow=c(4,2))
@@ -615,7 +586,7 @@ plot(x=pEvalP1$pRange,
      ylim=c(0,1), type="l",
      main="Effects of p parameter\nWhen r>0.8, 0.40<b<0.99, and g>1.3",
      xlab="p parameter value",
-     ylab="Portion of sampled parameter space\nwith substantive segregating effects")
+     ylab="Portion of sampled parameter space\nwith substantial segregating effects")
 abline(v=cases$p,lt=3)
 text(x=cases$p-0.025,y=0.5,labels=cases$caseID,srt=90)
 
@@ -632,7 +603,7 @@ plot(x=rEvalP1$rRange,
      ylim=c(0,1),type="l",
      main="Effects of r parameter\nWhen 0.40<b<0.99 and g>1.3",
      xlab="r parameter value",
-     ylab="Portion of sampled parameter space\nwith substantive segregating effects")
+     ylab="Portion of sampled parameter space\nwith substantial segregating effects")
 abline(v=cases$r,lt=3)
 text(x=cases$r-0.025,y=0.5,labels=cases$caseID,srt=90)
 
@@ -649,7 +620,7 @@ plot(x=bEvalP1$bRange,
      ylim=c(0,1),type="l",
      main="Effects of b parameter\nWhen r>0.8 and g>1.3",
      xlab="b parameter value",
-     ylab="Portion of sampled parameter space\nwith substantive segregating effects")
+     ylab="Portion of sampled parameter space\nwith substantial segregating effects")
 abline(v=cases$b,lt=3)
 text(x=cases$b-0.025,y=0.5,labels=cases$caseID,srt=90)
 
@@ -666,13 +637,35 @@ plot(x=gEvalP1$gRange,
      ylim=c(0,1),type="l",
      main="Effects of g parameter\nWhen r>0.8 and 0.40<b<0.99",
      xlab="g parameter value",
-     ylab="Portion of sampled parameter space\nwith substantive segregating effects")
+     ylab="Portion of sampled parameter space\nwith substantial segregating effects")
 abline(v=cases$g,lt=3)
 text(x=cases$g-0.01,y=0.5,labels=cases$caseID,srt=90)
 
 ```
 
 ```{r echo=T, results='hide', tidy=T}
+
+r50i <- which(abs(rEvalP1$pctSub-.5)==
+                       min(abs(rEvalP1$pctSub-.5)))
+r50 <- rEvalP1$rRange[r50i]
+r50m1 <- rEvalP1$pctSub[r50i-1]
+r50p1 <- rEvalP1$pctSub[r50i+1]
+r50T <- r50-0.01+(0.02*((0.5-r50m1)/(r50p1 - r50m1)))
+
+b50i <- which(abs(bEvalP1$pctSub-.5)==
+                       min(abs(bEvalP1$pctSub-.5)))
+b50 <- bEvalP1$bRange[b50i]
+b50m1 <- bEvalP1$pctSub[b50i-1]
+b50p1 <- bEvalP1$pctSub[b50i+1]
+b50T <- b50-0.02+(0.04*((0.5-b50m1)/(b50p1 - b50m1)))
+
+g50i <- which(abs(gEvalP1$pctSub-.5)==
+                       min(abs(gEvalP1$pctSub-.5)))
+g50 <- gEvalP1$gRange[g50i]
+g50m1 <- gEvalP1$pctSub[g50i-1]
+g50p1 <- gEvalP1$pctSub[g50i+1]
+g50T <- g50-0.02+(0.04*((0.5-g50m1)/(g50p1 - g50m1)))
+
 png(filename = paste0("paramInterp3x1_",gsub("-","",Sys.Date()),".PNG"),width=2400,height=3840,res=360)
 
 par(mar=c(4.1,6.1,4.1,0.5),mfrow=c(3,1))
@@ -680,63 +673,81 @@ par(mar=c(4.1,6.1,4.1,0.5),mfrow=c(3,1))
 plot(x=rEvalP1$rRange,
      y=rEvalP1$pctSub,
      ylim=c(0,1),type="l",
-     main="Effects of r parameter\nWhen 0.20<b<0.99 and g>1.3",
+     main="Effects of r parameter\nWhen b>0.20 and g>1.3",
      xlab="r parameter value",
-     ylab="Portion of sampled parameter space\nwith substantive segregating effects",lwd=2,
+     ylab="Portion of sampled parameter space\nwith substantial segregating effects",lwd=2,
      yaxt="n",cex=1.5,cex.axis=1.5,cex.main=1.5,cex.lab=1.5)
 axis(2, at=((0:4)/4), lab=paste0(((0:4)/4) * 100,"%"), las=TRUE,cex.axis=1.5,las=0)
 abline(h=0.5,lt=3,col="red")
-abline(v=0.806,lt=2,col="gray")
-text(x=0.85,y=0.25,labels="r = 0.806",srt=90,cex=1.5)
-
+abline(v=r50T,lt=2,col="gray")
+text(x=r50T+0.015,y=0.25,
+     labels=paste0("r = ",round(r50T,3),collapse=""),srt=90,cex=1.5)
 
 plot(x=bEvalP1$bRange,
      y=bEvalP1$pctSub,
      ylim=c(0,1),type="l",
      main="Effects of b parameter\nWhen r>0.2 and g>1.3",
      xlab="b parameter value",
-     ylab="Portion of sampled parameter space\nwith substantive segregating effects",lwd=2,
+     ylab="Portion of sampled parameter space\nwith substantial segregating effects",lwd=2,
      yaxt="n",cex=1.5,cex.axis=1.5,cex.main=1.5,cex.lab=1.5)
 axis(2, at=((0:4)/4), lab=paste0(((0:4)/4) * 100,"%"), las=TRUE,cex.axis=1.5,las=0)
 # abline(v=cases$b,lt=3)
 # text(x=cases$b-0.025,y=0.25,labels=cases$caseID,srt=90)
 abline(h=0.5,lt=3,col="red")
-# abline(v=c(0.618,0.804),col="gray",lt=2)
-# text(x=0.63,y=0.25,labels="b = 0.618",srt=90,cex=1.5)
+abline(v=b50T,col="gray",lt=2)
+text(x=b50T+0.015,y=0.25,labels=paste0("b = ",round(b50T,3),collapse=""),srt=90,cex=1.5)
 # text(x=0.79,y=0.25,labels="b = 0.804",srt=90,cex=1.5)
 
 plot(x=gEvalP1$gRange,
      y=gEvalP1$pctSub,
      ylim=c(0,1),type="l",
-     main="Effects of g parameter\nWhen r>0.2 and 0.20<b<0.99",
+     main="Effects of g parameter\nWhen r>0.2 and b>0.20",
      xlab="g parameter value",
-     ylab="Portion of sampled parameter space\nwith substantive segregating effects",lwd=2,
+     ylab="Portion of sampled parameter space\nwith substantial segregating effects",lwd=2,
      yaxt="n",cex=1.5,cex.axis=1.5,cex.main=1.5,cex.lab=1.5)
 axis(2, at=((0:4)/4), lab=paste0(((0:4)/4) * 100,"%"), las=TRUE,cex.axis=1.5,las=0)
 abline(h=0.5,lt=3,col="red")
-abline(v=1.84,lt=2,col="gray")
-text(x=1.86,y=0.25,labels="g = 1.84",srt=90,cex=1.5)
+abline(v=g50T,lt=2,col="gray")
+text(x=g50T+0.015,y=0.25,labels=paste0("g = ",round(g50T,3),collapse=""),srt=90,cex=1.5)
 
 
 dev.off()
 ```
  
 ```{r echo=T, results='hide', tidy=T}
-png(filename = paste0("paramInterpR_",gsub("-","",Sys.Date()),".PNG"),height=2400,width=3840,res=360)
+x50i <- which(abs(rEvalP1$pctSub-.5)==
+                       min(abs(rEvalP1$pctSub-.5)))
+x50 <- rEvalP1$rRange[x50i]
+y50m1 <- rEvalP1$pctSub[x50i-1]
+y50p1 <- rEvalP1$pctSub[x50i+1]
+x50T <- x50-0.01+(0.02*((0.5-y50m1)/(y50p1 - y50m1)))
+
+png(filename = paste0("paramInterpR_",
+                      gsub("-","",Sys.Date()),".PNG"),height=2400,width=3840,res=360)
 
 par(mar=c(4.1,6.1,4.1,0.5),mfrow=c(1,1))
 
 plot(x=rEvalP1$rRange,
      y=rEvalP1$pctSub,
      ylim=c(0,1),type="l",
-     main="Effects of r parameter\nWhen 0.20<b<0.99 and g>1.3",
+     main="Effects of r parameter\nWhen b>0.20 and g>1.3",
      xlab="r parameter value",
-     ylab="Portion of sampled parameter space\nwith substantive segregating effects",lwd=2,
+     ylab="Portion of sampled parameter space\nwith substantial segregating effects",lwd=2,
      yaxt="n",cex=1.5,cex.axis=1.5,cex.main=1.5,cex.lab=1.5)
 axis(2, at=((0:4)/4), lab=paste0(((0:4)/4) * 100,"%"), las=TRUE,cex.axis=1.5,las=0)
+# polygon(x=c(rEvalP1$rRange[which(rEvalP1$rRange>=0.6)][1],
+#             rEvalP1$rRange[which(rEvalP1$rRange>=0.6)],
+#             rEvalP1$rRange[length(rEvalP1$rRange)]),
+#         y=c(0,
+#             rEvalP1$pctSub[which(rEvalP1$rRange>=0.6)],
+#             0),
+#         col="lightGray")
 abline(h=0.5,lt=3,col="red")
-abline(v=0.806,lt=2,col="gray")
-text(x=0.85,y=0.25,labels="r = 0.806",srt=90,cex=1.5)
+abline(v=x50T,lt=2,col="darkGray")
+text(x=round(x50T,3)+0.015,
+     y=0.25,
+     labels=paste0("r = ",round(x50T,3),collapse=""),
+     srt=90,cex=1.5)
 
 dev.off()
 ```
@@ -1024,8 +1035,8 @@ panPctFBG3.7
 
 ```{r tidy=T}
 # Plotting 5 x 5 panels of women's share of applicant pool at equilibrium
-gridFigPctFBG <- subplot(panelsPctFBG[1:25],nrows=5,margin=0.005,
-                         shareY=T,shareX=T,titleX=F,titleY=F)
+gridFigPctFBG <- subplot(panelsPctFBG[1:25],nrows=5,margin=c(0,0.03,0.01,0),
+        shareY=T,shareX=T,titleX=F,titleY=F)
 gridFigPctFBG
 # save_image(gridFigPctFBG,file="fig3.png",width=1920,height=1200,scale=1)
 ```
@@ -1046,9 +1057,9 @@ panORBG3.7
 ```{r tidy=T}
 # Plotting 5 x 5 panels of sex bias equivalence - i.e., odds ratio
 # favoring men in selection that yield equivalent equilibrium outcomes
-gridFigORBG <- subplot(panelsORBG[1:25],nrows=5, margin=0.005,
-                       shareY=T,shareX=T,titleX=F,titleY=F)
-
+gridFigORBG <- subplot(panelsORBG[1:25],nrows=5,
+                       margin=c(0,0.03,0.01,0),
+                   shareY=T,shareX=T,titleX=F,titleY=F)
 gridFigORBG
 ```
 
