@@ -1,6 +1,7 @@
 ---
 title: "Online Appendix"
 author: ""
+# output: github_document
 output:
   html_document: default
   pdf_document: default
@@ -119,6 +120,7 @@ SageMathCell inputs to give the solution for men in the applicant pool over time
 >     de1 = diff(a,t) - (1-a-p+(r*b*g/(1+(b*g)-b)))==0
 >     de2 = diff(r,t) - (s*a-r) == 0
 >     desolve_system([de1,de2],[a,r],ics=[0,(1-p),0],ivar=t)
+
 ```{r analytic-solution, tidy=T, results='hide'}
 # women in applicant pool at time t
 wT <- function(t,p,r,b){
@@ -140,6 +142,7 @@ wShareT <- function(t,p,r,b,g){
 
 ## Illustration of solution equivalence
 Numeric and analytic solutions to differential equation models give results that can be made identical to arbitrary levels of accuracy. The average result for randomly sampled points in the model’s parameter space (including time) using the default numeric solution settings are outcomes that match to six decimal places. These very small differences between solutions are largest when model time is small. As model time increases, differences between these solutions approach zero.
+
 ```{r plot-analytic-numeric-compare, tidy=TRUE, eval=FALSE}
 # function compareSols takes no arguments
 # it samples a random point in the model's parameter space (including time)
@@ -634,6 +637,8 @@ panPctFBG3.7 <- getPctFPanelBG(0.3,0.7) # p=0.3, r=0.7
 panPctFBG3.7
 ```
 
+![Figure 2](./fig2_20211105)
+
 --------
 
 ## Figure 3
@@ -645,7 +650,7 @@ gridFigPctFBG <- subplot(panelsPctFBG[1:25],
                          shareY=T,shareX=T,titleX=F,titleY=F)
 gridFigPctFBG
 ```
-
+![Figure 3](./Fig3_PctF_20220518)
 --------
 
 ## Figure 4
@@ -656,7 +661,7 @@ gridFigPctFBG
 panORBG3.7 <- getORPanelBG(0.3,0.7) # p=0.3, r=0.7
 panORBG3.7
 ```
-
+![Figure 4](./fig4_20211105)
 --------
 
 ## Figure 5
@@ -670,6 +675,7 @@ gridFigORBG <- subplot(panelsORBG[1:25],
 gridFigORBG
 ```
 Note: Figure 4 shows half of the panel from Figure 2 and half of this panel. Both constrain the horizontal axis range for g to be from 1 to 1.5.
+![Figure 5](./Fig5_20220518)
 
 --------
 
