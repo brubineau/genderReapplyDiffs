@@ -513,6 +513,8 @@ The second objective of our money grab analysis is to examine screening effects 
 Demand-side screeners might evaluate reapplying male candidates differently than reapplying female candidates. Gender-specific interpretation of identical behaviors has been documented in negotiations (Kulik and Olekalns 2012) and in the gendered labeling of behavior (Wajcman 2013), among other settings. To decide whether this factor should be incorporated into the model, we again searched for empirical evidence of its existence; however, we found none – neither in the crowdfunding data (as Table A.5 shows) nor in published work. For example, Brands and Fernandez-Mateo (2017) report no gender differences in the likelihood of the search firm placing previously rejected candidates. If future research challenges these findings, then the model can be adjusted accordingly.    
 
 ![Figure A1](./a1_20220825.png)
+-----
+
 ![Figure A2](./a2_20220825.png)
 -----
 
@@ -637,7 +639,7 @@ panPctFBG3.7 <- getPctFPanelBG(0.3,0.7) # p=0.3, r=0.7
 panPctFBG3.7
 ```
 
-![Figure 2](./fig2_20211105)
+![Figure 2](./fig2_20211105.png)
 
 --------
 
@@ -650,7 +652,7 @@ gridFigPctFBG <- subplot(panelsPctFBG[1:25],
                          shareY=T,shareX=T,titleX=F,titleY=F)
 gridFigPctFBG
 ```
-![Figure 3](./Fig3_PctF_20220518)
+![Figure 3](./Fig3_PctF_20220518.png)
 --------
 
 ## Figure 4
@@ -661,7 +663,7 @@ gridFigPctFBG
 panORBG3.7 <- getORPanelBG(0.3,0.7) # p=0.3, r=0.7
 panORBG3.7
 ```
-![Figure 4](./fig4_20211105)
+![Figure 4](./fig4_20211105.png)
 --------
 
 ## Figure 5
@@ -675,7 +677,8 @@ gridFigORBG <- subplot(panelsORBG[1:25],
 gridFigORBG
 ```
 Note: Figure 4 shows half of the panel from Figure 2 and half of this panel. Both constrain the horizontal axis range for g to be from 1 to 1.5.
-![Figure 5](./Fig5_20220518)
+
+![Figure 5](./Fig5_20220518.PNG)
 
 --------
 
